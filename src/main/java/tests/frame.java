@@ -1,4 +1,6 @@
-/*import javax.swing.*;
+package tests;
+
+import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -104,4 +106,3 @@ public class frame extends JFrame implements DropTargetListener {
     }
 
 }
-*/
