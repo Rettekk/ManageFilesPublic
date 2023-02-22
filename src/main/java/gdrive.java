@@ -88,8 +88,4 @@ public class gdrive {
         HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
         return drive;
     }
-
-    public static void main(String... args) throws IOException, GeneralSecurityException {
-    getDriveService();
-    }
 }

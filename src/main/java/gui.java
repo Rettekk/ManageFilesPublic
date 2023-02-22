@@ -1,5 +1,4 @@
 import com.google.api.services.drive.Drive;
-import com.google.api.services.drive.model.About;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 
@@ -28,7 +27,6 @@ public class gui extends JTable implements DropTargetListener{
     DefaultTableModel tableModel;
     JTable table;
     JScrollPane scrollPane;
-
 
     public gui() {
         gui = new JFrame();
@@ -86,7 +84,6 @@ public class gui extends JTable implements DropTargetListener{
         addFile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
             }
         });
 
@@ -113,7 +110,7 @@ public class gui extends JTable implements DropTargetListener{
 
     public void gdriveAuthorize() {
         try {
-            gdrive.main();
+            gdrive.getDriveService();
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (GeneralSecurityException e) {
@@ -187,5 +184,14 @@ public class gui extends JTable implements DropTargetListener{
             ex.printStackTrace();
         }
         e.dropComplete(true);
+    }
+
+    public static void showGui() {
+        gui window = new gui();
+        window.setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        showGui();
     }
 }

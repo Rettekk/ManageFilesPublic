@@ -95,8 +95,7 @@ public class login extends JFrame {
                         String passwordDb = rs.getString("password");
                        if(passwordDb.equals(passWord)) {
                            JOptionPane.showMessageDialog(null, "Sie werden nun weitergeleitet.", "Erfolgreich", JOptionPane.INFORMATION_MESSAGE);
-                           gui gui = new gui();
-                           gui.setVisible(true);
+                           gui.showGui();
                        }
                     } else {
                         JOptionPane.showMessageDialog(null, "Benutzername oder Passwort falsch!", "Fehler", JOptionPane.ERROR_MESSAGE);

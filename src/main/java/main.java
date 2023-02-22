@@ -1,10 +1,9 @@
 import javax.swing.*;
 
-public class main extends JFrame {
+public class main {
 
     public static void main(String[] args) {
-        login loginView = new login();
-        gui guiView = new gui();
-        loginView.setVisible(true);
+       login login = new login();
+       login.setVisible(true);
     }
 }
