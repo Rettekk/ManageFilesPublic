@@ -7,7 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class login extends JFrame {
+public class login extends JFrame{
 
     private JLabel userLabel, passwordLabel, statusLabel;
     private JTextField userTextField;
@@ -70,7 +70,6 @@ public class login extends JFrame {
         setSize(300, 150);
         setResizable(false);
         setLocationRelativeTo(null);
-        setVisible(true);
 
         exit.addActionListener(new ActionListener() {
             @Override
@@ -95,7 +94,9 @@ public class login extends JFrame {
                         String passwordDb = rs.getString("password");
                        if(passwordDb.equals(passWord)) {
                            JOptionPane.showMessageDialog(null, "Sie werden nun weitergeleitet.", "Erfolgreich", JOptionPane.INFORMATION_MESSAGE);
-                           gui.showGui();
+                         guiView gui = new guiView();
+                         gui.setVisible(true);
+                         dispose();
                        }
                     } else {
                         JOptionPane.showMessageDialog(null, "Benutzername oder Passwort falsch!", "Fehler", JOptionPane.ERROR_MESSAGE);

@@ -20,6 +20,7 @@ public class database {
 
     static void closeDataBaseConnection() throws SQLException {
         connection.close();
+        System.out.println("Connection valid: " + connection.isValid(0));
     }
 }
 

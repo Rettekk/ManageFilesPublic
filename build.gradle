@@ -1,7 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
-mainClassName = 'gui'
+mainClassName = 'guiView'
 sourceCompatibility = 11
 targetCompatibility = 11
 version = '1.0'
