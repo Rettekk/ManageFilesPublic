@@ -95,23 +95,20 @@ public class login extends JFrame {
                         String passwordDb = rs.getString("password");
                        if(passwordDb.equals(passWord)) {
                            JOptionPane.showMessageDialog(null, "Sie werden nun weitergeleitet.", "Erfolgreich", JOptionPane.INFORMATION_MESSAGE);
+                           gui gui = new gui();
+                           gui.setVisible(true);
                        }
                     } else {
                         JOptionPane.showMessageDialog(null, "Benutzername oder Passwort falsch!", "Fehler", JOptionPane.ERROR_MESSAGE);
                     }
                     database.closeDataBaseConnection();
-
-                    dispose();
                 } catch (SQLException ex) {
                     throw new RuntimeException(ex);
                 } catch (ClassNotFoundException ex) {
                     throw new RuntimeException(ex);
                 }
+                dispose();
             }
         });
-
-    }
-    public static void main(String[] args) {
-        new login();
     }
 }

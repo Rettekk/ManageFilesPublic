@@ -28,24 +28,11 @@ public class gui extends JTable implements DropTargetListener{
     JTable table;
     JScrollPane scrollPane;
 
-    public static void main(String[] args) {
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    gui window = new gui();
-                    window.frame.setVisible(true);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-
     public gui() {
         initialize();
     }
 
-    private void initialize() {
+    public void initialize() {
         frame = new JFrame();
         frame.setBounds(100, 100, 800, 600);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
