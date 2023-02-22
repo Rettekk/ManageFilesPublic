@@ -9,7 +9,7 @@ public class database {
     static String username = "root";
     static String passwort = "";
     static String driver = "com.mysql.jdbc.Driver";
-    static String sqlLogin = "select * from userlogin";
+    public static String SQL_SELECT = "SELECT username, password FROM users WHERE username = ? AND password = ?";
 
     static void openDataBaseConnection() throws SQLException, ClassNotFoundException {
         Class.forName(driver);

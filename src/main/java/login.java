@@ -2,7 +2,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 public class login extends JFrame {
 
@@ -13,8 +16,6 @@ public class login extends JFrame {
 
     private JMenuItem addFile, delFile, showCloud, authorize, cred, howTo, disc, exit;
     private JMenu startMenu, helpMenu;
-    private static final String SQL_INSERT = "SELECT logins (username, password) VALUES (?,?)";
-
 
     public login() {
         setTitle("MangeFiles Login");
@@ -81,11 +82,26 @@ public class login extends JFrame {
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                String userName = userTextField.getText();
+                String passWord = String.valueOf(passwordField.getPassword());
                 try {
                     database.openDataBaseConnection();
-
-
+                    Statement stmt = database.connection.createStatement();
+                    PreparedStatement pStatement = database.connection.prepareStatement(database.SQL_SELECT);
+                    pStatement.setString(1, userName);
+                    pStatement.setString(2, passWord);
+                    ResultSet rs = pStatement.executeQuery();
+                    if(rs.next()) {
+                        String passwordDb = rs.getString("password");
+                       if(passwordDb.equals(passWord)) {
+                           JOptionPane.showMessageDialog(null, "Sie werden nun weitergeleitet.", "Erfolgreich", JOptionPane.INFORMATION_MESSAGE);
+                       }
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Benutzername oder Passwort falsch!", "Fehler", JOptionPane.ERROR_MESSAGE);
+                    }
                     database.closeDataBaseConnection();
+
+                    dispose();
                 } catch (SQLException ex) {
                     throw new RuntimeException(ex);
                 } catch (ClassNotFoundException ex) {
@@ -95,27 +111,7 @@ public class login extends JFrame {
         });
 
     }
-
     public static void main(String[] args) {
         new login();
-    }
-
-    private boolean checkLoginInserts() {
-        String passwordValue = String.valueOf(passwordField.getPassword());
-        String usernameValue = userTextField.getText();
-        if (userTextField.getText().isBlank()) {
-            JOptionPane.showMessageDialog(null, "Benutzername ist leer!", "Fehler", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-        if (passwordField.getPassword().length == 0) {
-            JOptionPane.showMessageDialog(null, "Passworteingabefeld ist leer!", "Fehler", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-        if (!(passwordValue.equals(passwordField) && usernameValue.equals(userTextField))) {
-            JOptionPane.showMessageDialog(null, "Falsches Passwort oder Benutzername. Bitte versuchen Sie es erneut.",
-                    "Fehler", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-        return true;
     }
 }
