@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 
-
 public class guiView extends JTable implements DropTargetListener {
 
     public JFrame gui;
@@ -120,49 +119,44 @@ public class guiView extends JTable implements DropTargetListener {
                     .execute();
             List<File> files = result.getFiles();
 
-            // Erstelle den Wurzelknoten, wenn er noch nicht existiert
-            if (rootNode == null) {
-                rootNode = new DefaultMutableTreeNode("Ordner");
-                tree = new JTree(rootNode);
-                JScrollPane scrollPane = new JScrollPane(tree);
-                scrollPane.setPreferredSize(new Dimension(800, 300));
-                tabpane.add("Cloud Overview", scrollPane);
-                tabpane.setSelectedIndex(tabpane.getTabCount() - 1);
-            }
-
-            // Aktualisiere den Wurzelknoten mit den neuen Dateien
-            rootNode.removeAllChildren();
+            DefaultMutableTreeNode root = new DefaultMutableTreeNode("Root");
+            DefaultTreeModel model = new DefaultTreeModel(root);
             for (File file : files) {
-                DefaultMutableTreeNode fileNode = new DefaultMutableTreeNode(file.getName());
-                rootNode.add(fileNode);
+                if (file.getMimeType().equals("application/vnd.google-apps.folder")) {
+                    DefaultMutableTreeNode folderNode = new DefaultMutableTreeNode(file.getName());
+                    root.add(folderNode);
+                    addFilesToNode(folderNode, file, service);
+                } else {
+                    DefaultMutableTreeNode fileNode = new DefaultMutableTreeNode(file.getName());
+                    root.add(fileNode);
+                }
             }
-            ((DefaultTreeModel) tree.getModel()).reload();
+            JTree tree = new JTree(model);
+            JScrollPane scrollPane = new JScrollPane(tree);
+            scrollPane.setPreferredSize(new Dimension(800, 300));
+            tabpane.add("Cloud Overview", scrollPane);
+            tabpane.setSelectedIndex(tabpane.getTabCount() - 1);
 
         } catch (IOException | GeneralSecurityException e) {
             e.printStackTrace();
         }
     }
 
-
-    public void listFiles() {
-        try {
-            Drive service = gdrive.getDriveService();
-            FileList result = service.files().list()
-                    .setFields("nextPageToken, files(name, size, mimeType, createdTime)")
-                    .execute();
-            List<File> files = result.getFiles();
-
-            int columnNames = 0;
-            DefaultTableModel newModel = new DefaultTableModel(columnNames, 0);
-            for (int i = 0; i < files.size(); i++) {
-                File file = files.get(i);
-                Object[] rowData = {file.getName(), file.getSize(), file.getMimeType(), file.getCreatedTime()};
-                newModel.addRow(rowData);
+    public void addFilesToNode(DefaultMutableTreeNode folderNode, File folder, Drive service) throws IOException {
+        FileList result = service.files().list()
+                .setQ("'" + folder.getId() + "' in parents")
+                .setFields("nextPageToken, files(name, size, mimeType, createdTime, id, parents)")
+                .execute();
+        List<File> files = result.getFiles();
+        for (File file : files) {
+            if (file.getMimeType().equals("application/vnd.google-apps.folder")) {
+                DefaultMutableTreeNode subFolderNode = new DefaultMutableTreeNode(file.getName());
+                folderNode.add(subFolderNode);
+                addFilesToNode(subFolderNode, file, service);
+            } else {
+                DefaultMutableTreeNode fileNode = new DefaultMutableTreeNode(file.getName());
+                folderNode.add(fileNode);
             }
-            table.setModel(newModel);
-
-        } catch (IOException | GeneralSecurityException e) {
-            e.printStackTrace();
         }
     }
 
