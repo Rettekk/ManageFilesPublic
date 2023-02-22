@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 
 public class login extends JFrame {
 
@@ -12,9 +13,7 @@ public class login extends JFrame {
 
     private JMenuItem addFile, delFile, showCloud, authorize, cred, howTo, disc, exit;
     private JMenu startMenu, helpMenu;
-
-    String enteredName = "Test";
-    String enteredPW = "Test123";
+    private static final String SQL_INSERT = "SELECT logins (username, password) VALUES (?,?)";
 
 
     public login() {
@@ -64,8 +63,8 @@ public class login extends JFrame {
         setJMenuBar(menuBar);
         setVisible(true);
 
-        userTextField.setText(enteredName);
-        passwordField.setText(enteredPW);
+        userTextField.setText("Test");
+        passwordField.setText("Test123");
 
         setSize(300, 150);
         setResizable(false);
@@ -82,17 +81,24 @@ public class login extends JFrame {
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (checkLoginInserts()){
-                    gui.main();
+                try {
+                    database.openDataBaseConnection();
+
+
+                    database.closeDataBaseConnection();
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                } catch (ClassNotFoundException ex) {
+                    throw new RuntimeException(ex);
                 }
             }
         });
 
     }
+
     public static void main(String[] args) {
         new login();
     }
-
 
     private boolean checkLoginInserts() {
         String passwordValue = String.valueOf(passwordField.getPassword());
@@ -110,7 +116,6 @@ public class login extends JFrame {
                     "Fehler", JOptionPane.ERROR_MESSAGE);
             return false;
         }
-
         return true;
     }
 }

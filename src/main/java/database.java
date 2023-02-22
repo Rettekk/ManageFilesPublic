@@ -10,7 +10,6 @@ public class database {
     static String passwort = "";
     static String driver = "com.mysql.jdbc.Driver";
     static String sqlLogin = "select * from userlogin";
-    static String sqlPw = "select * from userlogin";
 
     static void openDataBaseConnection() throws SQLException, ClassNotFoundException {
         Class.forName(driver);
