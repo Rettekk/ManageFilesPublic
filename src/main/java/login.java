@@ -107,7 +107,7 @@ public class login extends JFrame {
                 } catch (ClassNotFoundException ex) {
                     throw new RuntimeException(ex);
                 }
-                dispose();
+
             }
         });
     }

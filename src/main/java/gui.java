@@ -16,9 +16,10 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 
+
 public class gui extends JTable implements DropTargetListener{
 
-    private JFrame frame;
+    private JFrame gui;
     private JMenuItem addFile, delFile, showCloud, authorize, cred, howTo, disc, exit;
     private JMenuBar menuBar;
     private JMenu startMenu, helpMenu;
@@ -28,16 +29,13 @@ public class gui extends JTable implements DropTargetListener{
     JTable table;
     JScrollPane scrollPane;
 
-    public gui() {
-        initialize();
-    }
 
-    public void initialize() {
-        frame = new JFrame();
-        frame.setBounds(100, 100, 800, 600);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLocationRelativeTo(null);
-        frame.setResizable(false);
+    public gui() {
+        gui = new JFrame();
+        gui.setBounds(100, 100, 800, 600);
+        gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        gui.setLocationRelativeTo(null);
+        gui.setResizable(false);
 
         JMenuBar menuBar = new JMenuBar();
         startMenu = new JMenu("Start");
@@ -61,10 +59,10 @@ public class gui extends JTable implements DropTargetListener{
         helpMenu.add(howTo);
         menuBar.add(startMenu);
         menuBar.add(helpMenu);
-        frame.setJMenuBar(menuBar);
+        gui.setJMenuBar(menuBar);
 
         JPanel panel = new JPanel();
-        frame.getContentPane().add(panel, BorderLayout.SOUTH);
+        gui.getContentPane().add(panel, BorderLayout.SOUTH);
 
         authorize.addActionListener(new ActionListener() {
             @Override
@@ -102,13 +100,13 @@ public class gui extends JTable implements DropTargetListener{
         });
 
         final JPanel dropPanel = new JPanel();
-        frame.getContentPane().add(dropPanel, BorderLayout.CENTER);
+        gui.getContentPane().add(dropPanel, BorderLayout.CENTER);
 
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
         table = new JTable(data, columnNames);
         scrollPane = new JScrollPane(table);
         scrollPane.setPreferredSize(new Dimension(500, 300));
-        frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
+        gui.getContentPane().add(scrollPane, BorderLayout.CENTER);
 
         table.setModel(tableModel);
     }
@@ -190,5 +188,4 @@ public class gui extends JTable implements DropTargetListener{
         }
         e.dropComplete(true);
     }
-
 }
