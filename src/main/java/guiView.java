@@ -36,8 +36,9 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
     DefaultTableModel tableModel;
     JTable table;
     JScrollPane scrollPane;
-    JMenuItem deleteItem;
-
+    JMenuItem deleteItem, changeItem;
+    DefaultMutableTreeNode selectedNode;
+    File selectedFile;
     public guiView() {
         gui = new JFrame();
         gui.setBounds(100, 100, 800, 600);
@@ -102,7 +103,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         delFile.addActionListener(e -> {
             TreePath selectedPath = tree.getSelectionPath();
             if (selectedPath != null) {
-                DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) selectedPath.getLastPathComponent();
+                 selectedNode = (DefaultMutableTreeNode) selectedPath.getLastPathComponent();
                 if (selectedNode.getUserObject() instanceof File) {
                     File selectedFile = (File) selectedNode.getUserObject();
                     try {
@@ -137,6 +138,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             int y = e.getY();
             TreePath path = tree.getPathForLocation(x, y);
             if (path != null) {
+                System.out.println("Test");
                 tree.setSelectionPath(path);
                 showContextMenu(x, y);
             }
@@ -156,12 +158,42 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
     public void showContextMenu(int x, int y) {
         menu = new JPopupMenu();
         deleteItem = new JMenuItem("Loeschen");
-        deleteItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                // Code zum Löschen der Datei
+        changeItem = new JMenuItem("Umbenennen");
+        String newName = "Test";
+        changeItem.addActionListener(actionEvent -> {
+            TreePath selectedPath = tree.getSelectionPath();
+            if(selectedPath != null) {
+                selectedNode = (DefaultMutableTreeNode) selectedPath.getLastPathComponent();
+                if(selectedNode.getUserObject() instanceof File) {
+                    selectedFile = (File) selectedNode.getUserObject();
+                    try {
+                        Drive service = gdrive.getDriveService();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    } catch (GeneralSecurityException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        });
+        deleteItem.addActionListener(e -> {
+            TreePath selectedPath = tree.getSelectionPath();
+            if (selectedPath != null) {
+                DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) selectedPath.getLastPathComponent();
+                if (selectedNode.getUserObject() instanceof File) {
+                    File selectedFile = (File) selectedNode.getUserObject();
+                    try {
+                        Drive service = gdrive.getDriveService();
+                        service.files().delete(selectedFile.getId()).execute();
+                        listTreeFiles();
+                    } catch (IOException | GeneralSecurityException ex) {
+                        ex.printStackTrace();
+                    }
+                }
             }
         });
         menu.add(deleteItem);
+        menu.add(changeItem);
         menu.show(tree, x, y);
     }
 
@@ -264,8 +296,9 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             java.util.List<java.io.File> files = (java.util.List<java.io.File>) t.getTransferData(DataFlavor.javaFileListFlavor);
             for (java.io.File file : files) {
                 // Hier können Sie den Code einfügen, um die Datei hochzuladen oder zu speichern
-                String hallo = file.getAbsolutePath();
-                System.out.println(file.getName() + hallo);
+
+              //  String hallo = file.getAbsolutePath();
+               // System.out.println(file.getName() + hallo);
             }
             dropLabel.setText("drop");
         } catch (Exception ex) {

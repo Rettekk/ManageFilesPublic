@@ -20,6 +20,9 @@ public class login extends JFrame{
     public login() {
         setTitle("MangeFiles Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(300, 150);
+        setResizable(false);
+        setLocationRelativeTo(null);
 
         userLabel = new JLabel("Benutzername:");
         passwordLabel = new JLabel("Passwort:");
@@ -66,10 +69,6 @@ public class login extends JFrame{
 
         userTextField.setText("Test");
         passwordField.setText("Test123");
-
-        setSize(300, 150);
-        setResizable(false);
-        setLocationRelativeTo(null);
 
         exit.addActionListener(new ActionListener() {
             @Override
