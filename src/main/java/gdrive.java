@@ -6,6 +6,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -22,14 +23,12 @@ import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
-
+import com.google.api.client.googleapis.services.CommonGoogleClientRequestInitializer;
 
 /* class to demonstarte use of Drive files list API */
 public class gdrive {
-    /**
-     * Application name.
-     */
-    private static final String APPLICATION_NAME = "Drive Connection";
+
+    private static final String APPLICATION_NAME = "Google Drive File Manager";
     /**
      * Global instance of the JSON factory.
      */
@@ -43,21 +42,17 @@ public class gdrive {
      * Global instance of the scopes required by this quickstart.
      * If modifying these scopes, delete your previously saved tokens/ folder.
      */
-    private static final List<String> SCOPES =
-            Collections.singletonList(DriveScopes.DRIVE_METADATA_READONLY);
+    //private static final List<String> SCOPES =Collections.singletonList(DriveScopes.DRIVE_METADATA_READONLY);
+    private static final List SCOPES = Collections.singletonList(DriveScopes.DRIVE);
+
     private static final String CREDENTIALS_FILE_PATH = "/creds.json";
 
     private static Drive drive;
 
     private static Credential credentials;
 
-    /**
-     * Creates an authorized Credential object.
-     *
-     * @param HTTP_TRANSPORT The network HTTP Transport.
-     * @return An authorized Credential object.
-     * @throws IOException If the credentials.json file cannot be found.
-     */
+    static String apiKey = "AIzaSyCKhoaf7Fmkt93fjFcTcc8dI8Ht2J4W2ig";
+
     public static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
             throws IOException {
         // Load client secrets.
@@ -84,6 +79,7 @@ public class gdrive {
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
         Drive drive = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
                 .setApplicationName(APPLICATION_NAME)
+                .setGoogleClientRequestInitializer(new CommonGoogleClientRequestInitializer(apiKey))
                 .build();
         HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
         return drive;

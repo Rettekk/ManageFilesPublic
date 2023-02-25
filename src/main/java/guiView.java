@@ -129,23 +129,34 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         menu = new JPopupMenu();
         deleteItem = new JMenuItem("Loeschen");
         changeItem = new JMenuItem("Umbenennen");
-        final String[] newName = {"Test"};
         changeItem.addActionListener(actionEvent -> {
             TreePath selectedPath = tree.getSelectionPath();
-            if(selectedPath != null) {
+            if (selectedPath != null) {
                 selectedNode = (DefaultMutableTreeNode) selectedPath.getLastPathComponent();
-                if(selectedNode.getUserObject() instanceof File) {
-                    DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) selectedPath.getLastPathComponent();
-                    if (selectedNode.getUserObject() instanceof File) {
-                        File selectedFile = (File) selectedNode.getUserObject();
-                         newName[0] = JOptionPane.showInputDialog("Neuer Name:");
-                        selectedFile.setName(newName[0]);
-                        selectedNode.setUserObject(selectedFile);
-                        ((DefaultTreeModel)tree.getModel()).nodeChanged(selectedNode);
+                if (selectedNode.getUserObject() instanceof File) {
+                    File selectedFile = (File) selectedNode.getUserObject();
+                    String newName = JOptionPane.showInputDialog("222");
+                    if (newName != null && !newName.equals(selectedFile.getName())) {
+                        try {
+                            Drive service = gdrive.getDriveService();
+                            File fileMetadata = new File();
+                            fileMetadata.setName(newName);
+                            File updatedFile = service.files().create(fileMetadata).execute();
+                            service.files().delete(selectedFile.getId()).execute();
+                            DefaultMutableTreeNode parent = (DefaultMutableTreeNode) selectedNode.getParent();
+                            parent.remove(selectedNode);
+                            DefaultMutableTreeNode newFileNode = new DefaultMutableTreeNode(updatedFile);
+                            parent.add(newFileNode);
+                            ((DefaultTreeModel)tree.getModel()).reload(parent);
+                        } catch (IOException | GeneralSecurityException ex) {
+                            ex.printStackTrace();
+                        }
                     }
+
                 }
             }
         });
+
         deleteItem.addActionListener(e -> {
             TreePath selectedPath = tree.getSelectionPath();
             if (selectedPath != null) {
@@ -288,7 +299,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
     }
     @Override
     public void mouseReleased (MouseEvent e){
-        System.out.println("Test");
         if (e.isPopupTrigger()) {
             int x = e.getX();
             int y = e.getY();
