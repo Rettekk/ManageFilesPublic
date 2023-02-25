@@ -1,3 +1,4 @@
+import com.google.api.client.http.ByteArrayContent;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
@@ -6,21 +7,23 @@ import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 import java.util.List;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseListener;
 
-public class guiView extends JTable implements DropTargetListener, MouseListener {
+public class guiView extends JTable implements DropTargetListener, MouseListener{
 
     public JFrame gui;
     private JMenuItem addFile, delFile, showCloud, authorize, cred, howTo, disc, exit;
@@ -39,6 +42,8 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
     JMenuItem deleteItem, changeItem;
     DefaultMutableTreeNode selectedNode;
     File selectedFile;
+
+    TreePath path;
     public guiView() {
         gui = new JFrame();
         gui.setBounds(100, 100, 800, 600);
@@ -118,60 +123,25 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         });
 
         exit.addActionListener(e -> System.exit(0));
-
-    }
-
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-
-    }
-
-    public void mouseReleased(MouseEvent e) {
-        if (e.isPopupTrigger()) {
-            int x = e.getX();
-            int y = e.getY();
-            TreePath path = tree.getPathForLocation(x, y);
-            if (path != null) {
-                System.out.println("Test");
-                tree.setSelectionPath(path);
-                showContextMenu(x, y);
-            }
-        }
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-
     }
 
     public void showContextMenu(int x, int y) {
         menu = new JPopupMenu();
         deleteItem = new JMenuItem("Loeschen");
         changeItem = new JMenuItem("Umbenennen");
-        String newName = "Test";
+        final String[] newName = {"Test"};
         changeItem.addActionListener(actionEvent -> {
             TreePath selectedPath = tree.getSelectionPath();
             if(selectedPath != null) {
                 selectedNode = (DefaultMutableTreeNode) selectedPath.getLastPathComponent();
                 if(selectedNode.getUserObject() instanceof File) {
-                    selectedFile = (File) selectedNode.getUserObject();
-                    try {
-                        Drive service = gdrive.getDriveService();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    } catch (GeneralSecurityException e) {
-                        throw new RuntimeException(e);
+                    DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) selectedPath.getLastPathComponent();
+                    if (selectedNode.getUserObject() instanceof File) {
+                        File selectedFile = (File) selectedNode.getUserObject();
+                         newName[0] = JOptionPane.showInputDialog("Neuer Name:");
+                        selectedFile.setName(newName[0]);
+                        selectedNode.setUserObject(selectedFile);
+                        ((DefaultTreeModel)tree.getModel()).nodeChanged(selectedNode);
                     }
                 }
             }
@@ -228,11 +198,11 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
                 }
             }
             tree = new JTree(model);
-            tree.addMouseListener(this);
             JScrollPane scrollPane = new JScrollPane(tree);
             scrollPane.setPreferredSize(new Dimension(800, 300));
             tabpane.add("Cloud Overview", scrollPane);
             tabpane.setSelectedIndex(tabpane.getTabCount() - 1);
+            tree.addMouseListener(this);
 
         } catch (IOException | GeneralSecurityException e) {
             e.printStackTrace();
@@ -295,10 +265,20 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             Transferable t = e.getTransferable();
             java.util.List<java.io.File> files = (java.util.List<java.io.File>) t.getTransferData(DataFlavor.javaFileListFlavor);
             for (java.io.File file : files) {
-                // Hier können Sie den Code einfügen, um die Datei hochzuladen oder zu speichern
+                Drive drive = gdrive.getDriveService();
+                File fileMetadata = new File();
+                fileMetadata.setName(file.getName());
 
-              //  String hallo = file.getAbsolutePath();
-               // System.out.println(file.getName() + hallo);
+                File newFile = drive.files().create(fileMetadata).execute();
+                String fileId = newFile.getId();
+
+                java.io.File fileContent = new java.io.File(file.getAbsolutePath());
+                ByteArrayContent content = new ByteArrayContent("application/octet-stream", Files.readAllBytes(fileContent.toPath()));
+
+                Drive.Files.Update update = drive.files().update(fileId, null, content);
+                update.execute();
+
+                listTreeFiles();
             }
             dropLabel.setText("drop");
         } catch (Exception ex) {
@@ -306,8 +286,43 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         }
         e.dropComplete(true);
     }
+    @Override
+    public void mouseReleased (MouseEvent e){
+        System.out.println("Test");
+        if (e.isPopupTrigger()) {
+            int x = e.getX();
+            int y = e.getY();
+             path = tree.getPathForLocation(x, y);
+            if (path != null) {
+                tree.setSelectionPath(path);
+                showContextMenu(x, y);
+            }
+        }
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent mouseEvent) {
+
+    }
+
+    @Override
+    public void mousePressed(MouseEvent mouseEvent) {
+
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent mouseEvent) {
+
+    }
+
+    @Override
+    public void mouseExited(MouseEvent mouseEvent) {
+
+    }
+
     public static void main(String[] args) {
         guiView gui = new guiView();
         gui.setVisible(true);
     }
 }
+
