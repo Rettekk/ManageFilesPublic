@@ -1,9 +1,4 @@
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.http.ByteArrayContent;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
@@ -12,7 +7,6 @@ import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.*;
-import java.awt.event.*;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -20,14 +14,11 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.io.IOException;
-import java.net.URLConnection;
 import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.List;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseListener;
 
 public class guiView extends JTable implements DropTargetListener, MouseListener {
@@ -146,14 +137,12 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         createFolderItem = new JMenuItem("Ordner hinzufuegen");
 
         renameFileItem.addActionListener(actionEvent -> {
+
         });
 
+
         deleteItem.addActionListener(e -> {
-            path = tree.getSelectionPath();
-            if (path != null) {
-                deleteSelectedFile();
-            }
-            listTreeFiles();
+            deleteSelectedFile();
         });
 
 
@@ -164,46 +153,52 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
     }
 
     public void deleteSelectedFile() {
+        //https://docs.oracle.com/javase/7/docs/api/javax/swing/tree/DefaultMutableTreeNode.html
+        //Object 	getUserObject()
+        //Returns this node's user object.
+        //Object[] 	getUserObjectPath()
+        //Returns the user object path, from the root, to get to this node.
         selectedNode = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
+        System.out.println(selectedNode.toString());
+        System.out.println(selectedNode.getUserObject());
+        System.out.println(selectedNode.getClass());
+        Object userObject = selectedNode.getUserObject();
+        System.out.println(userObject.getClass());
         if (selectedNode == null) {
             return;
         }
-        selectedNode.getUserObjectPath();
-         userObject = selectedNode.getUserObject();
-        System.out.println(userObject.getClass());
-        if (userObject instanceof File) {
-            System.out.println(userObject.getClass());
+        Object deleteObject = selectedNode.getUserObject();
+        if (deleteObject instanceof File) {
             try {
                 Drive service = gdrive.getDriveService();
-                fileToDelete = (File) userObject;
+                File fileToDelete = (File) deleteObject;
                 service.files().delete(fileToDelete.getId()).execute();
                 DefaultMutableTreeNode parent = (DefaultMutableTreeNode) selectedNode.getParent();
                 parent.remove(selectedNode);
                 ((DefaultTreeModel) tree.getModel()).reload(parent);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (GeneralSecurityException e) {
-                throw new RuntimeException(e);
+            } catch (IOException | GeneralSecurityException ex) {
+                ex.printStackTrace();
             }
         }
     }
 
-
-    private void deleteFile2(DefaultMutableTreeNode nodeToDelete) {
+    private void renameSelectedFile(DefaultMutableTreeNode nodeToRename) {
         try {
-            if (nodeToDelete != null) {
-                userObject = nodeToDelete.getUserObject();
-                System.out.println(selectedNode);
-                System.out.println(path);
-                System.out.println(userObject.getClass());
+            if (nodeToRename != null) {
+                Object userObject = nodeToRename.getUserObject();
                 if (userObject instanceof File) {
-                    Drive service = gdrive.getDriveService();
-                    File fileToDelete = (File) userObject;
-                    System.out.println(fileToDelete.getId());
-                    service.files().delete(fileToDelete.getId()).execute();
-                    DefaultMutableTreeNode parent = (DefaultMutableTreeNode) nodeToDelete.getParent();
-                    parent.remove(nodeToDelete);
-                    ((DefaultTreeModel) tree.getModel()).reload(parent);
+                    File fileToRename = (File) userObject;
+                    String currentName = fileToRename.getName();
+                    String newName = JOptionPane.showInputDialog("Geben Sie den neuen Namen für die Datei ein:", currentName);
+                    if (newName != null && !newName.equals(currentName)) {
+                        File updatedFile = new File();
+                        updatedFile.setName(newName);
+                        Drive service = gdrive.getDriveService();
+                        service.files().update(fileToRename.getId(), updatedFile).execute();
+                        fileToRename.setName(newName);
+                        nodeToRename.setUserObject(fileToRename);
+                        ((DefaultTreeModel) tree.getModel()).nodeChanged(nodeToRename);
+                    }
                 }
             }
         } catch (IOException | GeneralSecurityException ex) {
