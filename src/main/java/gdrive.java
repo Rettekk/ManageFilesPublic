@@ -42,7 +42,6 @@ public class gdrive {
      * Global instance of the scopes required by this quickstart.
      * If modifying these scopes, delete your previously saved tokens/ folder.
      */
-    //private static final List<String> SCOPES =Collections.singletonList(DriveScopes.DRIVE_METADATA_READONLY);
     private static final List SCOPES = Collections.singletonList(DriveScopes.DRIVE);
 
     private static final String CREDENTIALS_FILE_PATH = "/creds.json";
@@ -77,11 +76,23 @@ public class gdrive {
 
     public static Drive getDriveService() throws IOException, GeneralSecurityException {
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-        Drive drive = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+         drive = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
                 .setApplicationName(APPLICATION_NAME)
                 .setGoogleClientRequestInitializer(new CommonGoogleClientRequestInitializer(apiKey))
                 .build();
         HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
         return drive;
+    }
+
+    public static void revokeDriveConnection() throws IOException {
+        java.io.File tokenDirectory = new java.io.File(TOKENS_DIRECTORY_PATH);
+        if (tokenDirectory.exists()) {
+            java.io.File[] files = tokenDirectory.listFiles();
+            if (files != null) {
+                for (java.io.File file : files) {
+                    file.delete();
+                }
+            }
+        }
     }
 }
