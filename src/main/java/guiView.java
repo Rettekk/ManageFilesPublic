@@ -368,7 +368,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
     public void dragEnter(DropTargetDragEvent e) {
         if (e.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
             e.acceptDrag(DnDConstants.ACTION_COPY);
-            dropLabel.setText("dragEnter");
         } else {
             e.rejectDrag();
         }
@@ -376,14 +375,12 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
 
     @Override
     public void dragExit(DropTargetEvent dte) {
-        dropLabel.setText("dragExit");
     }
 
     @Override
     public void dragOver(DropTargetDragEvent e) {
         if (e.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
             e.acceptDrag(DnDConstants.ACTION_COPY);
-            dropLabel.setText("DdragOver");
         } else {
             e.rejectDrag();
         }
