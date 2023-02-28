@@ -14,6 +14,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,6 +47,10 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
     File selectedFile, fileToDelete;
     TreePath path;
     Object userObject;
+    private creditsView creditsView = new creditsView();
+    private howToView howToView = new howToView();
+
+
 
     public guiView() {
         gui = new JFrame();
@@ -81,6 +86,8 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         dropLabel.setHorizontalAlignment(SwingConstants.CENTER);
         dropLabel.setFont(new Font("Arial", Font.BOLD, 20));
         addFileDetails = new JPanel(new BorderLayout());
+        tabpane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+        gui.add(tabpane);
 
         logOff.addActionListener(e -> {
             closeAllTabbedPanes(gui.getContentPane());
@@ -90,6 +97,8 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             gui.setVisible(false);
         });
 
+        cred.addActionListener(e -> {openCreditsTab();});
+        howTo.addActionListener(e -> {openHowToUseTab();});
         disc.addActionListener(e -> {
             try {
                 gdrive.revokeDriveConnection();
@@ -113,8 +122,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             logOff.setEnabled(true);
             addFileTab = new JPanel(new BorderLayout());
             addFileTab.setPreferredSize(new Dimension(500, 300));
-            tabpane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
-            gui.add(tabpane);
             scrollPane = new JScrollPane(table);
             scrollPane.setPreferredSize(new Dimension(800, 300));
             addFileTab.add(scrollPane, BorderLayout.CENTER);
@@ -129,7 +136,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             tabpane.addTab("Datei hinzufuegen", dropPanel);
             tabpane.setSelectedIndex(tabpane.getTabCount() - 1);
         });
-
 
         exit.addActionListener(e -> System.exit(0));
     }
@@ -343,6 +349,55 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             tabpane.removeTabAt(index);
         }
     }
+
+    public void openCreditsTab() {
+        String tabName = "Credits";
+        boolean tabExists = false;
+        int tabIndex = -1;
+
+        for (int i = 0; i < tabpane.getTabCount(); i++) {
+            if (tabpane.getTitleAt(i).equals(tabName)) {
+                tabExists = true;
+                tabIndex = i;
+                break;
+            }
+        }
+
+        if (!tabExists) {
+            // Der "Credits"-Tab wurde noch nicht geöffnet, fügen Sie ihn hinzu
+            creditsView creditsView = new creditsView();
+            scrollPane = new JScrollPane(creditsView.createPanel());
+            tabpane.addTab(tabName, scrollPane);
+            tabIndex = tabpane.getTabCount() - 1;
+        }
+
+        tabpane.setSelectedIndex(tabIndex);
+    }
+
+    public void openHowToUseTab() {
+        String tabName = "Benutzeranleitung";
+        boolean tabExists = false;
+        int tabIndex = -1;
+
+        for (int i = 0; i < tabpane.getTabCount(); i++) {
+            if (tabpane.getTitleAt(i).equals(tabName)) {
+                tabExists = true;
+                tabIndex = i;
+                break;
+            }
+        }
+
+        if (!tabExists) {
+            // Der "Credits"-Tab wurde noch nicht geöffnet, fügen Sie ihn hinzu
+            howToView howToView = new howToView();
+            scrollPane = new JScrollPane(howToView.createPanel());
+            tabpane.addTab(tabName, scrollPane);
+            tabIndex = tabpane.getTabCount() - 1;
+        }
+
+        tabpane.setSelectedIndex(tabIndex);
+    }
+
 
     public void addFilesToNode(DefaultMutableTreeNode folderNode, File folder, Drive service) throws IOException {
         FileList result = service.files().list()
