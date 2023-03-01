@@ -14,11 +14,11 @@ public class login extends JFrame{
     private JPasswordField passwordField;
     private JButton loginButton;
 
-    private JMenuItem addFile, delFile, showCloud, authorize, cred, howTo, disc, exit;
+    private JMenuItem addFile, delFile, showCloud, authorize, cred, howTo, disc, exit, logOff;
     private JMenu startMenu, helpMenu;
 
     public login() {
-        setTitle("MangeFiles Login");
+        setTitle("Manage Files Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(300, 150);
         setResizable(false);
@@ -49,6 +49,7 @@ public class login extends JFrame{
         showCloud = new JMenuItem("Cloud anzeigen");
         authorize = new JMenuItem("Mit der Cloud verbinden");
         disc = new JMenuItem("Verbindung trennen");
+        logOff = new JMenuItem("Abmelden");
         exit = new JMenuItem("Exit");
         helpMenu = new JMenu("Hilfe");
         cred = new JMenuItem("Credits");
@@ -58,6 +59,7 @@ public class login extends JFrame{
         startMenu.add(showCloud).setEnabled(false);
         startMenu.add(disc).setEnabled(false);
         startMenu.add(authorize).setEnabled(false);
+        startMenu.add(logOff).setEnabled(false);
         startMenu.add(disc);
         startMenu.add(exit);
         helpMenu.add(cred);

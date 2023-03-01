@@ -23,27 +23,3 @@ public class database {
         System.out.println("Connection valid: " + connection.isValid(0));
     }
 }
-
-/*	public void actionPerformed(ActionEvent e) {
-				int id = 1;
-				String passwordValue = String.valueOf(passwordFieldPW.getPassword());
-				String passwordValueRepeat = String.valueOf(passwordFieldPwRepeat.getPassword());
-				String userName = textFieldUsername.getText();
-				if(!(passwordValue.equals(passwordValueRepeat)) ) {
-					repeatLabelInfo.setText("The passwords must be equal!");
-				} else {
-					repeatLabelInfo.setText(null);
-					try {
-						database.openDataBaseConnection();
-						Statement st = database.connection.createStatement();
-			            PreparedStatement preparedStatement = database.connection.prepareStatement(SQL_INSERT);
-			            preparedStatement.setString(1, userName);
-			            preparedStatement.setString(2, passwordValueRepeat);
-			            preparedStatement.executeUpdate();
-					} catch (ClassNotFoundException e1) {
-						e1.printStackTrace();
-					} catch (SQLException e1) {
-						e1.printStackTrace();
-					}
-				}
-			*/
