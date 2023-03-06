@@ -1,5 +1,5 @@
-public class jobs {
-    String[] ausbildungsberufe = {"Anlagenmechaniker", "Automobilkaufmann", "Bäcker", "Bankkaufmann", "Bauzeichner",
+public class infos {
+    String[] jobs = {"Anlagenmechaniker", "Automobilkaufmann", "Bäcker", "Bankkaufmann", "Bauzeichner",
             "Berufskraftfahrer", "Chemielaborant", "Dachdecker", "Elektroniker für Betriebstechnik",
             "Ergotherapeut", "Fachinformatiker", "Fachkraft für Lagerlogistik", "Fahrzeuglackierer",
             "Feinwerkmechaniker", "Fliesenleger", "Friseur", "Gebäudereiniger", "Gärtner",
@@ -19,4 +19,8 @@ public class jobs {
             "Verwaltungsfachangestellter", "Werkzeugmechaniker", "Winzer", "Wirtschaftsinformatiker",
             "Wirtschaftsprüfer", "Zahnmedizinische Fachangestellte", "Zerspanungsmechaniker",
             "Zimmerer", "Zweiradmechaniker"};
+
+    String[] pruefungsteile = {"AP1", "AP2", "WISO"};
+    String[] halbjahr = {"Sommer 23", "Winter 23/24"};
+
 }

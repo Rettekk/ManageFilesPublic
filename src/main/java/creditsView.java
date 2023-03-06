@@ -17,6 +17,7 @@ public class creditsView {
                 "  <p>Verwendete Schnittstellen:</p>\n" +
                 "  <ul>\n" +
                 "    <li><strong>Google Drive API</strong> - Google</li>\n" +
+                "    <li><strong>Tesseract</strong></li>\n" +
                 "  </ul>\n" +
                 "</body>\n" +
                 "</html>\n", SwingConstants.CENTER);

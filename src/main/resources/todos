@@ -1,8 +1,6 @@
-Ordner löschen []
-Ordner hinzufügen []
 Suchfeld, um nach Dateien oder Datum zu suchen []
 Mehr Infos vor Upload der Datei []
-HilfeTaB []
 BedienungTab []
-Sortiermöglichkeit? Eventuell mit tessaract? []
-Wie sollen die Ordner und Dateien strukturiert werden []
+Einbindung von tesseract []
+Prüfen der Dateien, ob diese ein keyword erhalten, hochladen wenn ordner vorhanden, sonst erstellen und hochladen []
+Rechteverteilung (ordner löschen, hinzufügen und datei löschen nur für admins)
