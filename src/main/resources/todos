@@ -1,5 +1,4 @@
-Suchfeld, um nach Dateien oder Datum zu suchen []
 BedienungTab []
-Einbindung von tesseract []
-Prüfen der Dateien, ob diese ein keyword erhalten, hochladen wenn ordner vorhanden, sonst erstellen und hochladen []
 Rechteverteilung (ordner löschen, hinzufügen und datei löschen nur für admins)
+prüfenm, ob AP1 oder Teil1 und dann sortieren
+refactoring

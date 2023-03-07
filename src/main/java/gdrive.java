@@ -19,6 +19,8 @@ import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
 import com.google.api.client.googleapis.services.CommonGoogleClientRequestInitializer;
+import com.google.api.services.drive.model.File;
+import com.google.api.services.drive.model.FileList;
 
 /* class to demonstarte use of Drive files list API */
 public class gdrive {
@@ -89,5 +91,47 @@ public class gdrive {
                 }
             }
         }
+    }
+
+    public static String getFolderId(Drive service, String folderName) throws IOException {
+        String folderId = null;
+        String pageToken = null;
+        do {
+            // Abrufen des Ordners
+            FileList folders = service.files().list()
+                    .setQ("mimeType='application/vnd.google-apps.folder' and trashed=false and name='" + folderName + "'")
+                    .setFields("nextPageToken, files(id)")
+                    .setPageToken(pageToken)
+                    .execute();
+            for (File folder : folders.getFiles()) {
+                folderId = folder.getId();
+            }
+            pageToken = folders.getNextPageToken();
+        } while (pageToken != null);
+        return folderId;
+    }
+
+    static String getOrCreateFolderId(Drive drive, String folderName, String parentFolderId) throws IOException {
+        String query = "mimeType='application/vnd.google-apps.folder' and trashed=false and name='" + folderName + "'";
+        if (parentFolderId != null) {
+            query += " and '" + parentFolderId + "' in parents";
+        }
+
+        FileList files = drive.files().list().setQ(query).setFields("nextPageToken, files(id, name)").execute();
+
+        if (!files.getFiles().isEmpty()) {
+            return files.getFiles().get(0).getId();
+        }
+
+        File folderMetadata = new File();
+        folderMetadata.setName(folderName);
+        folderMetadata.setMimeType("application/vnd.google-apps.folder");
+        if (parentFolderId != null) {
+            folderMetadata.setParents(Collections.singletonList(parentFolderId));
+        }
+
+        File folder = drive.files().create(folderMetadata).setFields("id").execute();
+
+        return folder.getId();
     }
 }
