@@ -2,28 +2,32 @@ import com.google.api.client.http.ByteArrayContent;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
-import com.sun.jdi.event.MonitorWaitEvent;
+import net.sourceforge.tess4j.Tesseract;
+import net.sourceforge.tess4j.util.LoadLibs;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.pdfbox.text.PDFTextStripper;
 
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.*;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.security.GeneralSecurityException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.List;
 import javax.swing.tree.MutableTreeNode;
 
 public class guiView extends JTable implements DropTargetListener, MouseListener {
@@ -49,6 +53,12 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
     Object userObject;
     private creditsView creditsView = new creditsView();
     private howToView howToView = new howToView();
+    String foundJobTitle = "";
+    String foundExamTitle = "";
+    String foundSemesterTitle = "";
+    boolean foundJob = false;
+    boolean foundExam = false;
+    boolean foundSemester = false;
 
 
     public guiView() {
@@ -85,7 +95,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         dropLabel.setHorizontalAlignment(SwingConstants.CENTER);
         dropLabel.setFont(new Font("Arial", Font.BOLD, 20));
         addFileDetails = new JPanel(new BorderLayout());
-       // tabpane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+        // tabpane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
         tabpane = new closableTabs();
         gui.add(tabpane);
 
@@ -137,20 +147,21 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             dropPanel.setPreferredSize(new Dimension(500, 300));
             dropPanel.add(dropLabel, BorderLayout.NORTH);
             gui.add(dropPanel);
-            tabpane.addTab("Datei hinzufuegen", dropPanel);
+            tabpane.addTab("Datei hinzufügen", dropPanel);
             tabpane.setSelectedIndex(tabpane.getTabCount() - 1);
         });
 
         exit.addActionListener(e -> System.exit(0));
     }
 
+
     public void showContextMenu(int x, int y) {
         menu = new JPopupMenu();
-        deleteItem = new JMenuItem("Datei loeschen");
+        deleteItem = new JMenuItem("Datei löschen");
         renameFileItem = new JMenuItem("Datei umbenennen");
-        createFolderItem = new JMenuItem("Ordner hinzufuegen");
+        createFolderItem = new JMenuItem("Ordner hinzufügen");
         JMenuItem renameFolderItem = new JMenuItem("Ordner umbenennen");
-        JMenuItem deleteFolderItem = new JMenuItem("Ordner loeschen");
+        JMenuItem deleteFolderItem = new JMenuItem("Ordner löschen");
 
         renameFileItem.addActionListener(actionEvent -> {
             renameSelectedFile(selectedNode);
@@ -246,7 +257,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         }
     }
 
-
     public void renameFolder(DefaultMutableTreeNode selectedNode) throws GeneralSecurityException, IOException {
         Drive service = gdrive.getDriveService();
         File selectedFile = (File) selectedNode.getUserObject();
@@ -259,7 +269,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             ((DefaultTreeModel) tree.getModel()).reload(selectedNode);
         }
     }
-
 
     public void createFolder(DefaultMutableTreeNode selectedNode) {
         try {
@@ -301,7 +310,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         }
     }
 
-
     public void deleteSelectedFile() throws IOException, GeneralSecurityException {
         selectedNode = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
         if (selectedNode == null) {
@@ -325,7 +333,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
                 if (userObject instanceof File) {
                     File fileToRename = (File) userObject;
                     String currentName = fileToRename.getName();
-                    String newName = JOptionPane.showInputDialog("Geben Sie den neuen Namen fuer die Datei ein:", currentName);
+                    String newName = JOptionPane.showInputDialog("Geben Sie den neuen Namen für die Datei ein:", currentName);
                     if (newName != null && !newName.equals(currentName)) {
                         File updatedFile = new File();
                         updatedFile.setName(newName);
@@ -358,26 +366,20 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         removeCloudOverviewTab();
         try {
             Drive service = gdrive.getDriveService();
-            FileList result = service.files().list()
-                    .setFields("files(name, size, mimeType, id, parents)")
-                    .execute();
-            List<File> files = result.getFiles();
-
-            DefaultMutableTreeNode root = new DefaultMutableTreeNode("Home");
+            String[] oberOrdner = infos.jobArray;
+            DefaultMutableTreeNode root = new DefaultMutableTreeNode("Google Drive");
             DefaultTreeModel model = new DefaultTreeModel(root);
-            for (File file : files) {
-                if (file.getMimeType().equals("application/vnd.google-apps.folder")) {
-                    DefaultMutableTreeNode folderNode = new DefaultMutableTreeNode(file.getName());
-                    folderNode.setUserObject(file);
-                    root.add(folderNode);
-                    addFilesToNode(folderNode, file, service);
-                } else {
-                    DefaultMutableTreeNode fileNode = new DefaultMutableTreeNode(file.getName());
-                    fileNode.setUserObject(file);
-                    root.add(fileNode);
 
+            for (String ober : oberOrdner) {
+                String folderId = getFolderId(service, ober);
+                if (folderId == null) {
+                    continue;
                 }
+                DefaultMutableTreeNode oberNode = new DefaultMutableTreeNode(ober);
+                root.add(oberNode);
+                addFilesToNode(oberNode, folderId, service);
             }
+
             tree = new JTree(model);
             tree.setCellRenderer(new treeName());
             JScrollPane scrollPane = new JScrollPane(tree);
@@ -389,6 +391,42 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         } catch (IOException | GeneralSecurityException e) {
             e.printStackTrace();
         }
+    }
+
+    public void addFilesToNode(DefaultMutableTreeNode folderNode, String folderId, Drive service) throws IOException {
+        FileList result = service.files().list()
+                .setQ("'" + folderId + "' in parents and trashed=false")
+                .setFields("nextPageToken, files(name, size, mimeType, createdTime, id, parents)")
+                .execute();
+        List<File> files = result.getFiles();
+        for (File file : files) {
+            if (file.getMimeType().equals("application/vnd.google-apps.folder")) {
+                DefaultMutableTreeNode subFolderNode = new DefaultMutableTreeNode(file.getName());
+                folderNode.add(subFolderNode);
+                addFilesToNode(subFolderNode, file.getId(), service);
+            } else {
+                DefaultMutableTreeNode fileNode = new DefaultMutableTreeNode(file.getName());
+                folderNode.add(fileNode);
+            }
+        }
+    }
+
+    public String getFolderId(Drive service, String folderName) throws IOException {
+        String folderId = null;
+        String pageToken = null;
+        do {
+            // Abrufen des Ordners
+            FileList folders = service.files().list()
+                    .setQ("mimeType='application/vnd.google-apps.folder' and trashed=false and name='" + folderName + "'")
+                    .setFields("nextPageToken, files(id)")
+                    .setPageToken(pageToken)
+                    .execute();
+            for (File folder : folders.getFiles()) {
+                folderId = folder.getId();
+            }
+            pageToken = folders.getNextPageToken();
+        } while (pageToken != null);
+        return folderId;
     }
 
     private int getCloudOverviewTabIndex() {
@@ -454,26 +492,137 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
     }
 
 
-    public void addFilesToNode(DefaultMutableTreeNode folderNode, File folder, Drive service) throws IOException {
-        FileList result = service.files().list()
-                .setQ("'" + folder.getId() + "' in parents")
-                .setFields("nextPageToken, files(name, size, mimeType, createdTime, id, parents)")
-                .execute();
-        List<File> files = result.getFiles();
-        for (File file : files) {
-            if (file.getMimeType().equals("application/vnd.google-apps.folder")) {
-                DefaultMutableTreeNode subFolderNode = new DefaultMutableTreeNode(file.getName());
-                folderNode.setUserObject(file);
-                folderNode.add(subFolderNode);
-                addFilesToNode(subFolderNode, file, service);
-            } else {
-                DefaultMutableTreeNode fileNode = new DefaultMutableTreeNode(file.getName());
-                fileNode.setUserObject(file);
-                folderNode.add(fileNode);
+    public void drop(DropTargetDropEvent e) {
+        String[] allowedExtensions = {".pdf"};
+        e.acceptDrop(DnDConstants.ACTION_COPY);
+        try {
+            Transferable t = e.getTransferable();
+            List<java.io.File> files = (List<java.io.File>) t.getTransferData(DataFlavor.javaFileListFlavor);
+            for (java.io.File file : files) {
+                String fileName = file.getName();
+                String fileSize = String.valueOf(file.length() / 1024);
+                Drive drive = gdrive.getDriveService();
+                if (Arrays.stream(allowedExtensions).anyMatch(fileName::endsWith)) {
+                    JDialog confirmDialog = new JDialog(gui, "Datei hochladen?", true);
+                    String message = "<html>Möchten Sie die Datei hochladen?<br><br>"
+                            + "Weitere Informationen zur Datei:<br><br>"
+                            + "Dateiname: " + fileName + "<br>"
+                            + "Dateigröße: " + fileSize + " MB<br>"
+                            + "Zuletzt bearbeitet am: " + file.lastModified() + "<br>"
+                            + "Dateipfad: " + file.getAbsolutePath() + "<br>"
+                            + "<br><br>"
+                            + "Die Datei wird umbenannt und in den jeweiligen Ordner gelegt.</html>";
+
+                    JLabel messageLabel = new JLabel(message);
+                    JButton yesButton = new JButton("Ja");
+                    JButton noButton = new JButton("Nein");
+                    yesButton.addActionListener(ev -> {
+                        try {
+                            PDDocument document = PDDocument.load(file);
+                            for (int i = 0; i < document.getNumberOfPages(); i++) {
+
+                                PDFTextStripper pdfStripper = new PDFTextStripper();
+                                String result = pdfStripper.getText(document);
+                                String[] jobs = infos.jobArray;
+                                for (String jobInfo : jobs) {
+                                    if (result.contains(jobInfo)) {
+                                        foundJobTitle = jobInfo;
+                                        foundJob = true;
+                                        break;
+                                    }
+                                }
+                                String[] exams = infos.examArray;
+                                for (String examInfo : exams) {
+                                    if (result.contains(examInfo)) {
+                                        foundExamTitle = examInfo;
+                                        foundExam = true;
+                                        break;
+                                    }
+                                }
+                                String[] semesters = infos.semArray;
+                                for (String semesterInfo : semesters) {
+                                    if (result.contains(semesterInfo)) {
+                                        foundSemesterTitle = semesterInfo;
+                                        foundSemester = true;
+                                        break;
+                                    }
+                                }
+                                document.close();
+
+                                if (foundJob && foundExam && foundSemester) {
+                                    String jobFolderId = getOrCreateFolderId(drive, foundJobTitle, "root");
+                                    String examFolderId = getOrCreateFolderId(drive, foundExamTitle, jobFolderId);
+                                    String semesterFolderId = getOrCreateFolderId(drive, foundSemesterTitle, examFolderId);
+                                    //Upload
+                                    File fileMetadata = new File();
+                                    fileMetadata.setName(file.getName());
+                                    fileMetadata.setParents(Collections.singletonList(semesterFolderId));
+                                    File newFile = drive.files().create(fileMetadata).execute();
+                                    String fileId = newFile.getId();
+                                    java.io.File fileContent = new java.io.File(file.getAbsolutePath());
+                                    ByteArrayContent content = new ByteArrayContent("application/octet-stream", Files.readAllBytes(fileContent.toPath()));
+                                    Drive.Files.Update update = drive.files().update(fileId, null, content);
+                                    update.execute();
+                                    confirmDialog.dispose();
+                                }
+                            }
+
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    });
+
+                    noButton.addActionListener(ev -> {
+                        confirmDialog.dispose();
+                    });
+
+                    JPanel buttonPanel = new JPanel();
+                    buttonPanel.add(yesButton);
+                    buttonPanel.add(noButton);
+                    confirmDialog.getContentPane().setLayout(new BorderLayout());
+                    confirmDialog.getContentPane().add(messageLabel, BorderLayout.CENTER);
+                    confirmDialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
+                    confirmDialog.pack();
+                    confirmDialog.setLocationRelativeTo(gui);
+                    confirmDialog.setVisible(true);
+                    listTreeFiles();
+
+                } else {
+                    JOptionPane.showMessageDialog(null, "Der Dateityp wird nicht unterstützt. Bitte als .pdf-Datei hochladen.");
+                }
             }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
+        e.dropComplete(true);
     }
 
+    private String getOrCreateFolderId(Drive drive, String folderName, String parentFolderId) throws IOException {
+        // Search for the folder by name
+        String query = "mimeType='application/vnd.google-apps.folder' and trashed=false and name='" + folderName + "'";
+        if (parentFolderId != null) {
+            query += " and '" + parentFolderId + "' in parents";
+        }
+
+        FileList files = drive.files().list().setQ(query).setFields("nextPageToken, files(id, name)").execute();
+
+        // If the folder exists, return its ID
+        if (!files.getFiles().isEmpty()) {
+            return files.getFiles().get(0).getId();
+        }
+
+        // If the folder doesn't exist, create it
+        File folderMetadata = new File();
+        folderMetadata.setName(folderName);
+        folderMetadata.setMimeType("application/vnd.google-apps.folder");
+        if (parentFolderId != null) {
+            folderMetadata.setParents(Collections.singletonList(parentFolderId));
+        }
+
+        File folder = drive.files().create(folderMetadata).setFields("id").execute();
+
+        return folder.getId();
+    }
 
 
     @Override
@@ -502,67 +651,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
     public void dropActionChanged(DropTargetDragEvent dropTargetDragEvent) {
     }
 
-    public void drop(DropTargetDropEvent e) {
-        String[] allowedExtensions = {".pdf"};
-        e.acceptDrop(DnDConstants.ACTION_COPY);
-        try {
-            Transferable t = e.getTransferable();
-            java.util.List<java.io.File> files = (java.util.List<java.io.File>) t.getTransferData(DataFlavor.javaFileListFlavor);
-            for (java.io.File file : files) {
-                String getFileName = file.getName();
-                String compareFileName = "name='" + getFileName + "' and trashed=false";
-                Drive drive = gdrive.getDriveService();
-                if (Arrays.stream(allowedExtensions).anyMatch(getFileName::endsWith)) {
-                    FileList result = drive.files().list().setQ(compareFileName).execute();
-                    if (!result.getFiles().isEmpty()) {
-                        JOptionPane.showMessageDialog(null, "Die Datei " + getFileName + " ist bereits vorhanden.");
-                    } else {
-                        JDialog confirmDialog = new JDialog(gui, "Datei hochladen?", true);
-                        JLabel messageLabel = new JLabel("Möchten Sie die Datei \"" + file.getName() + "\" hochladen (" + file.length() + " Bytes)?");
-                        JButton yesButton = new JButton("Ja");
-                        JButton noButton = new JButton("Nein");
-
-                        yesButton.addActionListener(ev -> {
-                            try {
-                                File fileMetadata = new File();
-                                fileMetadata.setName(file.getName());
-                                File newFile = drive.files().create(fileMetadata).execute();
-                                String fileId = newFile.getId();
-                                java.io.File fileContent = new java.io.File(file.getAbsolutePath());
-                                ByteArrayContent content = new ByteArrayContent("application/octet-stream", Files.readAllBytes(fileContent.toPath()));
-                                Drive.Files.Update update = drive.files().update(fileId, null, content);
-                                update.execute();
-                                confirmDialog.dispose();
-                            } catch (Exception ex) {
-                                ex.printStackTrace();
-                            }
-                        });
-
-                        noButton.addActionListener(ev -> {
-                            confirmDialog.dispose();
-                        });
-
-                        JPanel buttonPanel = new JPanel();
-                        buttonPanel.add(yesButton);
-                        buttonPanel.add(noButton);
-                        confirmDialog.getContentPane().setLayout(new BorderLayout());
-                        confirmDialog.getContentPane().add(messageLabel, BorderLayout.CENTER);
-                        confirmDialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
-                        confirmDialog.pack();
-                        confirmDialog.setLocationRelativeTo(gui);
-                        confirmDialog.setVisible(true);
-                        listTreeFiles();
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(null, "Der Dateityp wird nicht unterstützt. Bitte als .pdf-Datei hochladen.");
-                }
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        e.dropComplete(true);
-    }
-
     public static void closeAllTabbedPanes(Container container) {
         for (Component component : container.getComponents()) {
             if (component instanceof JTabbedPane) {
@@ -574,7 +662,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             }
         }
     }
-
 
     public void mouseReleased(MouseEvent e) {
         if (e.isPopupTrigger()) {
@@ -613,4 +700,3 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         gui.setVisible(true);
     }
 }
-
