@@ -1,8 +1,4 @@
-Ordner löschen []
-Ordner hinzufügen []
-Suchfeld, um nach Dateien oder Datum zu suchen []
-Mehr Infos vor Upload der Datei []
-HilfeTaB []
 BedienungTab []
-Sortiermöglichkeit? Eventuell mit tessaract? []
-Wie sollen die Ordner und Dateien strukturiert werden []
+Rechteverteilung (ordner löschen, hinzufügen und datei löschen nur für admins)
+prüfenm, ob AP1 oder Teil1 und dann sortieren
+refactoring
