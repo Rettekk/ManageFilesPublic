@@ -1,4 +1,6 @@
-BedienungTab []
+file herunterladen
 Rechteverteilung (ordner löschen, hinzufügen und datei löschen nur für admins)
-prüfenm, ob AP1 oder Teil1 und dann sortieren
 refactoring
+ladescreen
+verbessetes errorhanling
+mehrere dateien auf einmal hochladen

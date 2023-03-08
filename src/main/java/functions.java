@@ -19,6 +19,7 @@ public class functions {
             }
         }
     }
-
-
+    public static String normalizeString(String str) {
+        return str.trim().toLowerCase();
+    }
 }

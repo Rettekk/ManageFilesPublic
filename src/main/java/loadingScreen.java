@@ -1,30 +1,24 @@
 import javax.swing.*;
-import java.awt.*;
 
-public class loadingScreen {
-    private static JWindow window;
-    private JLabel label;
+public class loadingScreen extends JDialog {
+    private final JProgressBar progressBar;
 
-    public loadingScreen() {
-        window = new JWindow();
-        JPanel panel = new JPanel(new BorderLayout());
-        label = new JLabel("Loading...", SwingConstants.CENTER);
-        panel.add(label, BorderLayout.CENTER);
-        panel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
-        window.add(panel);
-        window.pack();
-        window.setLocationRelativeTo(null);
+    public loadingScreen(guiView owner) {
+        super();
+        progressBar = new JProgressBar(0, 100);
+        progressBar.setValue(0);
+        progressBar.setStringPainted(true);
+        JPanel panel = new JPanel();
+        panel.add(progressBar);
+        getContentPane().add(panel);
+        pack();
+        setLocationRelativeTo(owner);
     }
 
-    public static void showLoadingScreen() {
-        window.setVisible(true);
+    public static void setValue(int percent) {
     }
 
-    public static void hideLoadingScreen() {
-        window.dispose();
-    }
-
-    public void setLoadingText(String text) {
-        label.setText(text);
+    public void setProgress(int value) {
+        progressBar.setValue(value);
     }
 }

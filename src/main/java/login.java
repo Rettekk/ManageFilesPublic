@@ -18,7 +18,8 @@ public class login extends JFrame{
     private JMenu startMenu, helpMenu;
 
     public login() {
-        setTitle("Manage Files Login");
+        setTitle("ManageMyFiles - Login");
+        setName("ManageMyFiles");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(300, 150);
         setResizable(false);

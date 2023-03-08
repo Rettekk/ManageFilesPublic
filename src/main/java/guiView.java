@@ -1,11 +1,15 @@
+import com.google.api.client.googleapis.media.MediaHttpUploader;
+import com.google.api.client.googleapis.media.MediaHttpUploaderProgressListener;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
@@ -26,7 +30,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
     private JMenuItem addFile, showCloud, authorize, cred, howTo, disc, exit, logOff;
     private JMenuBar menuBar;
     private JMenu startMenu, helpMenu;
-    JLabel  dropLabel;
+    JLabel dropLabel;
     private JTabbedPane tabpane;
     private JTree tree;
     JPopupMenu menu;
@@ -49,6 +53,8 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
 
     public guiView() {
         gui = new JFrame();
+        gui.setTitle("ManageMyFiles - IHK - Prüfungsunterlegen sortieren");
+        gui.setName("ManageMyFiles");
         gui.setBounds(100, 100, 800, 600);
         gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         gui.setLocationRelativeTo(null);
@@ -111,6 +117,18 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             }
         });
 
+        tabpane.addChangeListener(e -> {
+            int index = tabpane.getSelectedIndex();
+            if (index != 1) {
+               searchButton.setEnabled(false);
+               searchField.setEnabled(false);
+            } else {
+               searchButton.setEnabled(true);
+               searchField.setEnabled(true);
+            }
+        });
+
+
 
         cred.addActionListener(e -> {
             openCreditsTab();
@@ -147,7 +165,10 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             addFileTab.add(scrollPane, BorderLayout.CENTER);
         });
 
-        showCloud.addActionListener(e -> {listTreeFiles(); searchPanel.setVisible(true);});
+        showCloud.addActionListener(e -> {
+            listTreeFiles();
+            searchPanel.setVisible(true);
+        });
         addFile.addActionListener(e -> {
             dropPanel.setDropTarget(new DropTarget(dropPanel, DnDConstants.ACTION_COPY, this));
             dropPanel.setPreferredSize(new Dimension(500, 300));
@@ -161,12 +182,12 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
     }
 
     public void searchInTree(JTree tree, String searchTerm) {
-        DefaultMutableTreeNode root = (DefaultMutableTreeNode)tree.getModel().getRoot();
+        DefaultMutableTreeNode root = (DefaultMutableTreeNode) tree.getModel().getRoot();
         Enumeration e = root.depthFirstEnumeration();
         while (e.hasMoreElements()) {
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode)e.nextElement();
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) e.nextElement();
             if (node.toString().toLowerCase().contains(searchTerm.toLowerCase())) {
-                TreeNode[] nodes = ((DefaultTreeModel)tree.getModel()).getPathToRoot(node);
+                TreeNode[] nodes = ((DefaultTreeModel) tree.getModel()).getPathToRoot(node);
                 TreePath path = new TreePath(nodes);
                 tree.setSelectionPath(path);
                 return;
@@ -362,7 +383,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
                         nodeToRename.setUserObject(fileToRename);
                         ((DefaultTreeModel) tree.getModel()).nodeChanged(nodeToRename);
                     } else {
-                        JOptionPane.showMessageDialog(null, "Die Datei wurde nicht umbenannt.\nBitte geben Sie einen neuen Namen ein.");
+                        errorHandling.renameError();
                     }
                 }
             }
@@ -421,7 +442,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             if (file.getMimeType().equals("application/vnd.google-apps.folder")) {
                 DefaultMutableTreeNode subFolderNode = new DefaultMutableTreeNode(file.getName());
                 folderNode.add(subFolderNode);
-               // folderNode.setUserObject(file);
+                // folderNode.setUserObject(file);
                 addFilesToNode(subFolderNode, file.getId(), service);
             } else {
                 DefaultMutableTreeNode fileNode = new DefaultMutableTreeNode(file.getName());
@@ -494,9 +515,8 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         tabpane.setSelectedIndex(tabIndex);
     }
 
-
     public void drop(DropTargetDropEvent e) {
-        String[] allowedExtensions = {".pdf"};
+        String allowedExtensions = ".pdf";
         e.acceptDrop(DnDConstants.ACTION_COPY);
         try {
             Transferable t = e.getTransferable();
@@ -505,13 +525,17 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
                 String fileName = file.getName();
                 String fileSize = String.valueOf(file.length() / 1024);
                 Drive drive = gdrive.getDriveService();
-                if (Arrays.stream(allowedExtensions).anyMatch(fileName::endsWith)) {
+                if (fileName.toLowerCase().endsWith(allowedExtensions)) {
+                    long lastModified = file.lastModified();
+                    Date date = new Date(lastModified);
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+                    String formattedDate = dateFormat.format(date);
                     JDialog confirmDialog = new JDialog(gui, "Datei hochladen?", true);
                     String message = "<html>Möchten Sie die Datei hochladen?<br><br>"
                             + "Weitere Informationen zur Datei:<br><br>"
                             + "Dateiname: " + fileName + "<br>"
                             + "Dateigröße: " + fileSize + " MB<br>"
-                            + "Zuletzt bearbeitet am: " + file.lastModified() + "<br>"
+                            + "Zuletzt bearbeitet am: " + formattedDate + "<br>"
                             + "Dateipfad: " + file.getAbsolutePath() + "<br>"
                             + "<br><br>"
                             + "Die Datei wird umbenannt und in den jeweiligen Ordner gelegt.</html>";
@@ -520,71 +544,95 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
                     JButton yesButton = new JButton("Ja");
                     JButton noButton = new JButton("Nein");
                     yesButton.addActionListener(ev -> {
-                        try {
-                            PDDocument document = PDDocument.load(file);
-                            for (int i = 0; i < document.getNumberOfPages(); i++) {
-
-                                PDFTextStripper pdfStripper = new PDFTextStripper();
-                                String result = pdfStripper.getText(document);
-                                String[] jobs = infos.jobArray;
-                                for (String jobInfo : jobs) {
-                                    if (result.contains(jobInfo)) {
-                                        foundJobTitle = jobInfo;
-                                        foundJob = true;
-                                        break;
+                            try {
+                                PDDocument document = PDDocument.load(file);
+                                for (int i = 0; i < document.getNumberOfPages(); i++) {
+                                    PDFTextStripper pdfStripper = new PDFTextStripper();
+                                    String result = pdfStripper.getText(document);
+                                    String[] jobs = infos.jobArray;
+                                    for (String jobInfo : jobs) {
+                                        if (result.toLowerCase().contains(functions.normalizeString(jobInfo))) {
+                                            foundJobTitle = jobInfo;
+                                            foundJob = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!foundJob) {
+                                        errorHandling.jobNotFound(file);
+                                        confirmDialog.dispose();
+                                        return;
+                                    }
+                                    String[] exams = infos.examArray;
+                                    for (String examInfo : exams) {
+                                        if (result.toLowerCase().contains(functions.normalizeString(examInfo))) {
+                                            foundExamTitle = examInfo;
+                                            foundExam = true;
+                                            break;
+                                        }
+                                    }
+                                    if (foundExam) {
+                                        if (foundExamTitle.equals("WISO") || foundExamTitle.equals("Wirtschaftskunde")) {
+                                            foundExamTitle = "WISO";
+                                        } else if (foundExamTitle.equals("AP1") || foundExamTitle.equals("AP 1") || foundExamTitle.equals("Abschlussprüfung Teil 1") || foundExamTitle.equals("Abschlussprüfung Teil1")) {
+                                            foundExamTitle = "AP1";
+                                        } else if (foundExamTitle.equals("AP2") || foundExamTitle.equals("AP 2") || foundExamTitle.equals("Abschlusspüfung Teil 2") || foundExamTitle.equals("Abschlussprüfung Teil2")) {
+                                            foundExamTitle = "AP2";
+                                        }
+                                    } else {
+                                        errorHandling.examNotFound(file);
+                                        return;
+                                    }
+                                    String[] semesters = infos.semArray;
+                                    for (String semesterInfo : semesters) {
+                                        if (result.toLowerCase().contains(functions.normalizeString(semesterInfo))) {
+                                            foundSemesterTitle = semesterInfo;
+                                            foundSemester = true;
+                                            break;
+                                        }
+                                    }
+                                    if (foundSemester) {
+                                        if (foundSemesterTitle.equals("Sommer23") || foundSemesterTitle.equals("Sommer 23")) {
+                                            foundSemesterTitle = "Sommer 23";
+                                        } else if (foundSemesterTitle.equals("Winter2324") || foundSemesterTitle.equals("Winter 23/24") || foundSemesterTitle.equals("Winter23/24") || foundSemesterTitle.equals("Winter 2324")
+                                                || foundSemesterTitle.equals("Winter 23-24") || foundSemesterTitle.equals("Winter 23 24") || foundSemesterTitle.equals("Winter 23-24")) {
+                                            foundSemesterTitle = "Winter 23/24";
+                                        }
+                                    } else {
+                                        errorHandling.semesterNotFound(file);
+                                        return;
+                                    }
+                                    document.close();
+                                    if (foundJob && foundExam && foundSemester) {
+                                        String jobFolderId = gdrive.getOrCreateFolderId(drive, foundJobTitle, "root");
+                                        String examFolderId = gdrive.getOrCreateFolderId(drive, foundExamTitle, jobFolderId);
+                                        String semesterFolderId = gdrive.getOrCreateFolderId(drive, foundSemesterTitle, examFolderId);
+                                        //rename file
+                                        String timestamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());
+                                        String newFileName = foundJobTitle + "_" + foundExamTitle + "_" + foundSemesterTitle + "_" + fileName.substring(0, fileName.lastIndexOf(".")) + "_" + timestamp;
+                                        //Upload
+                                        File fileMetadata = new File();
+                                        fileMetadata.setName(newFileName);
+                                        fileMetadata.setParents(Collections.singletonList(semesterFolderId));
+                                        File newFile = drive.files().create(fileMetadata).execute();
+                                        String fileId = newFile.getId();
+                                        java.io.File fileContent = new java.io.File(file.getAbsolutePath());
+                                        ByteArrayContent content = new ByteArrayContent("application/octet-stream", Files.readAllBytes(fileContent.toPath()));
+                                        Drive.Files.Update update = drive.files().update(fileId, null, content);
+                                        update.execute();
+                                        confirmDialog.dispose();
+                                    } else {
+                                        errorHandling.lessInfos(file);
+                                        return;
                                     }
                                 }
-                                String[] exams = infos.examArray;
-                                for (String examInfo : exams) {
-                                    if (result.contains(examInfo)) {
-                                        foundExamTitle = examInfo;
-                                        foundExam = true;
-                                        break;
-                                    }
-                                }
-                                String[] semesters = infos.semArray;
-                                for (String semesterInfo : semesters) {
-                                    if (result.contains(semesterInfo)) {
-                                        foundSemesterTitle = semesterInfo;
-                                        foundSemester = true;
-                                        break;
-                                    }
-                                }
-                                document.close();
-
-                                if (foundJob && foundExam && foundSemester) {
-                                    String jobFolderId = gdrive.getOrCreateFolderId(drive, foundJobTitle, "root");
-                                    String examFolderId = gdrive.getOrCreateFolderId(drive, foundExamTitle, jobFolderId);
-                                    String semesterFolderId = gdrive.getOrCreateFolderId(drive, foundSemesterTitle, examFolderId);
-                                    //rename file
-                                    String timestamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());
-                                    String newFileName = foundJobTitle + "_" + foundExamTitle + "_" + foundSemesterTitle + "_" + fileName.substring(0, fileName.lastIndexOf(".")) + "_" + timestamp;
-                                    //Upload
-                                    File fileMetadata = new File();
-                                    fileMetadata.setName(newFileName);
-                                    fileMetadata.setParents(Collections.singletonList(semesterFolderId));
-                                    File newFile = drive.files().create(fileMetadata).execute();
-                                    String fileId = newFile.getId();
-                                    java.io.File fileContent = new java.io.File(file.getAbsolutePath());
-                                    ByteArrayContent content = new ByteArrayContent("application/octet-stream", Files.readAllBytes(fileContent.toPath()));
-                                    Drive.Files.Update update = drive.files().update(fileId, null, content);
-                                    update.execute();
-                                    confirmDialog.dispose();
-                                } else {
-                                    errorHandling.lessInfos();
-                                }
-
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
                             }
-
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
                     });
 
-                    noButton.addActionListener(ev -> {
-                        confirmDialog.dispose();
-                    });
+                    noButton.addActionListener(ev -> {confirmDialog.dispose();});
 
+                    //UploadPanel
                     JPanel buttonPanel = new JPanel();
                     buttonPanel.add(yesButton);
                     buttonPanel.add(noButton);
