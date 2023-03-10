@@ -24,6 +24,5 @@ public class infos {
     static String[] examArray = {"AP1", "AP2", "WISO", "Abschlussprüfung Teil 1", "Abschlussprüfung Teil 2", "Wirtschaftskunde", "Abschlussprüfung Teil1", "Abschlussprüung Teil2"};
     static String[] semArray = {"Sommer 23", "Winter 23/24"};
 
-    static String adminRights = "admin";
-    static String userRights = "user";
+    static String downloadPw = "TestPasswort";
 }

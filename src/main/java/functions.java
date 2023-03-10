@@ -1,10 +1,5 @@
-import com.google.api.services.drive.Drive;
-import com.google.api.services.drive.model.File;
-import com.google.api.services.drive.model.FileList;
-
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
 
 public class functions {
 
@@ -21,5 +16,13 @@ public class functions {
     }
     public static String normalizeString(String str) {
         return str.trim().toLowerCase();
+    }
+
+    public static void logOut(JFrame gui) {
+        functions.closeAllTabbedPanes(gui.getContentPane());
+        JOptionPane.showMessageDialog(null, "Sie werden nun abgemeldet.");
+        login login = new login();
+        login.setVisible(true);
+        gui.setVisible(false);
     }
 }

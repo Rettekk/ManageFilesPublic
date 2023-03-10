@@ -26,4 +26,20 @@ public class errorHandling {
     public static void semesterNotFound(File file) {
         JOptionPane.showMessageDialog(null, "Das Semester wurde in der Datei  " + file.getName() + " nicht gefunden. Die Datei wird nicht hochgeladen.");
     }
+
+    public static void fileWrongPw() {
+        JOptionPane.showMessageDialog(null, "Das Passwort ist falsch! Bitte wenden Sie sich an Ihren Administrator.");
+    }
+
+    public static void errorDownloadFile(Exception e) {
+        JOptionPane.showMessageDialog(null, "Fehler beim Herunterladen der Datei: " + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public static void maxAttemptsWrongPw() {
+        JOptionPane.showMessageDialog(null, "Sie haben 3 falsche Passwörter eingegeben. Sie werden nun ausgeloggt.");
+    }
+
+    public static void successDownloadFile() {
+        JOptionPane.showMessageDialog(null, "Die Datei wurde erfolgreich heruntergeladen und befindet sich im Download-Ordner.");
+    }
 }

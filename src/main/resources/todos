@@ -1,6 +1,8 @@
-file herunterladen
 Rechteverteilung (ordner löschen, hinzufügen und datei löschen nur für admins)
 refactoring
 ladescreen
 verbessetes errorhanling
 mehrere dateien auf einmal hoch laden und ein großes dialogfenster dann anzeigenn
+suchfeld fixxen
+mein server db einrichten (postgres)
+optik

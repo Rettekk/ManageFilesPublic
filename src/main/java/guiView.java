@@ -1,5 +1,3 @@
-import com.google.api.client.googleapis.media.MediaHttpUploader;
-import com.google.api.client.googleapis.media.MediaHttpUploaderProgressListener;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
@@ -8,8 +6,6 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
@@ -21,34 +17,35 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
-import java.util.*;
 
 public class guiView extends JTable implements DropTargetListener, MouseListener {
 
     public JFrame gui;
-    private JMenuItem addFile, showCloud, authorize, cred, howTo, disc, exit, logOff;
-    private JMenuBar menuBar;
-    private JMenu startMenu, helpMenu;
     JLabel dropLabel;
-    private JTabbedPane tabpane;
-    private JTree tree;
     JPopupMenu menu;
     JPanel dropPanel, addFileTab, addFileDetails;
-
     JTable table;
     JScrollPane scrollPane;
     JMenuItem deleteItem, renameFileItem, createFolderItem;
     DefaultMutableTreeNode selectedNode;
     TreePath path;
-    private creditsView creditsView = new creditsView();
-    private howToView howToView = new howToView();
     String foundJobTitle = "";
     String foundExamTitle = "";
     String foundSemesterTitle = "";
     boolean foundJob = false;
     boolean foundExam = false;
     boolean foundSemester = false;
+    private JMenuItem addFile, showCloud, authorize, cred, howTo, disc, exit, logOff;
+    private JMenuBar menuBar;
+    private JMenu startMenu, helpMenu;
+    private JTabbedPane tabpane;
+    private JTree tree;
+    private creditsView creditsView = new creditsView();
+    private howToView howToView = new howToView();
 
 
     public guiView() {
@@ -61,7 +58,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         gui.setResizable(false);
         menuBar = new JMenuBar();
         startMenu = new JMenu("Start");
-        addFile = new JMenuItem("Datei hochladen");
+        addFile = new JMenuItem("Dateien hochladen");
         showCloud = new JMenuItem("Cloud anzeigen");
         authorize = new JMenuItem("Mit der Cloud verbinden");
         logOff = new JMenuItem("Abmelden");
@@ -103,11 +100,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
 
 
         logOff.addActionListener(e -> {
-            functions.closeAllTabbedPanes(gui.getContentPane());
-            JOptionPane.showMessageDialog(null, "Sie werden nun abgemeldet.");
-            login login = new login();
-            login.setVisible(true);
-            gui.setVisible(false);
+            functions.logOut(gui);
         });
 
         searchButton.addActionListener(e -> {
@@ -120,14 +113,13 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         tabpane.addChangeListener(e -> {
             int index = tabpane.getSelectedIndex();
             if (index != 1) {
-               searchButton.setEnabled(false);
-               searchField.setEnabled(false);
+                searchButton.setEnabled(false);
+                searchField.setEnabled(false);
             } else {
-               searchButton.setEnabled(true);
-               searchField.setEnabled(true);
+                searchButton.setEnabled(true);
+                searchField.setEnabled(true);
             }
         });
-
 
 
         cred.addActionListener(e -> {
@@ -181,6 +173,11 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         exit.addActionListener(e -> System.exit(0));
     }
 
+    public static void main(String[] args) {
+        guiView gui = new guiView();
+        gui.setVisible(true);
+    }
+
     public void searchInTree(JTree tree, String searchTerm) {
         DefaultMutableTreeNode root = (DefaultMutableTreeNode) tree.getModel().getRoot();
         Enumeration e = root.depthFirstEnumeration();
@@ -197,15 +194,15 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
 
     public void showContextMenu(int x, int y) {
         menu = new JPopupMenu();
+        JMenuItem downloadFile = new JMenuItem("Datei herunterladen");
         deleteItem = new JMenuItem("Datei löschen");
         renameFileItem = new JMenuItem("Datei umbenennen");
         createFolderItem = new JMenuItem("Ordner hinzufügen");
         JMenuItem renameFolderItem = new JMenuItem("Ordner umbenennen");
         JMenuItem deleteFolderItem = new JMenuItem("Ordner löschen");
+        renameFileItem.addActionListener(actionEvent -> renameSelectedFile(selectedNode));
 
-        renameFileItem.addActionListener(actionEvent -> {
-            renameSelectedFile(selectedNode);
-        });
+        downloadFile.addActionListener(actionEvent -> {downloadSelectedFile();});
 
         deleteItem.addActionListener(e -> {
             try {
@@ -222,13 +219,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         });
 
         renameFolderItem.addActionListener(actionEvent -> {
-            try {
-                renameFolder(selectedNode);
-            } catch (GeneralSecurityException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            renameFolder(selectedNode);
         });
 
         deleteFolderItem.addActionListener(e -> {
@@ -241,6 +232,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             }
         });
 
+        menu.add(downloadFile);
         menu.add(deleteItem);
         menu.add(renameFileItem);
         menu.add(createFolderItem);
@@ -297,14 +289,26 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         }
     }
 
-    public void renameFolder(DefaultMutableTreeNode selectedNode) throws GeneralSecurityException, IOException {
-        Drive service = gdrive.getDriveService();
+    public void renameFolder(DefaultMutableTreeNode selectedNode) {
+        Drive service;
+        try {
+            service = gdrive.getDriveService();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        }
         File selectedFile = (File) selectedNode.getUserObject();
         String newFolderName = JOptionPane.showInputDialog("Wie soll der Ordner umbenannt werden?");
         if (newFolderName != null) {
             File fileMetadata = new File();
             fileMetadata.setName(newFolderName);
-            File updatedFile = service.files().update(selectedFile.getId(), fileMetadata).execute();
+            File updatedFile;
+            try {
+                updatedFile = service.files().update(selectedFile.getId(), fileMetadata).execute();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             selectedNode.setUserObject(updatedFile);
             ((DefaultTreeModel) tree.getModel()).reload(selectedNode);
         }
@@ -363,6 +367,25 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             DefaultMutableTreeNode parent = (DefaultMutableTreeNode) selectedNode.getParent();
             parent.remove(selectedNode);
             ((DefaultTreeModel) tree.getModel()).reload(parent);
+        }
+    }
+
+    public void downloadSelectedFile() {
+        try {
+            selectedNode = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
+            if (selectedNode == null) {
+                return;
+            }
+            Object downloadObject = selectedNode.getUserObject();
+            if (downloadObject instanceof File) {
+                File fileToDownload = (File) downloadObject;
+                gdrive.getDriveService();
+                gdrive.downloadFile(gdrive.drive, fileToDownload.getId());
+                errorHandling.successDownloadFile();
+            }
+        } catch (IOException | GeneralSecurityException e) {
+            e.printStackTrace();
+            errorHandling.errorDownloadFile(e);
         }
     }
 
@@ -452,7 +475,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         }
     }
 
-
     private int getCloudOverviewTabIndex() {
         for (int i = 0; i < tabpane.getTabCount(); i++) {
             if (tabpane.getTitleAt(i).equals("Cloud Overview")) {
@@ -522,6 +544,22 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             Transferable t = e.getTransferable();
             List<java.io.File> files = (List<java.io.File>) t.getTransferData(DataFlavor.javaFileListFlavor);
             for (java.io.File file : files) {
+
+                long totalBytes = file.length();
+                long bytesUploaded = 0;
+                String progressMessage = "Hochladen... ";
+                JProgressBar progressBar = new JProgressBar(0, 100);
+                progressBar.setString(progressMessage);
+                progressBar.setStringPainted(true);
+                JPanel progressPanel = new JPanel(new BorderLayout());
+                progressPanel.add(progressBar, BorderLayout.NORTH);
+                JDialog progressDialog = new JDialog(gui, "Hochladen", true);
+                progressDialog.getContentPane().add(progressPanel);
+                progressDialog.pack();
+                progressDialog.setLocationRelativeTo(gui);
+                progressDialog.setVisible(true);
+
+
                 String fileName = file.getName();
                 String fileSize = String.valueOf(file.length() / 1024);
                 Drive drive = gdrive.getDriveService();
@@ -544,93 +582,95 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
                     JButton yesButton = new JButton("Ja");
                     JButton noButton = new JButton("Nein");
                     yesButton.addActionListener(ev -> {
-                            try {
-                                PDDocument document = PDDocument.load(file);
-                                for (int i = 0; i < document.getNumberOfPages(); i++) {
-                                    PDFTextStripper pdfStripper = new PDFTextStripper();
-                                    String result = pdfStripper.getText(document);
-                                    String[] jobs = infos.jobArray;
-                                    for (String jobInfo : jobs) {
-                                        if (result.toLowerCase().contains(functions.normalizeString(jobInfo))) {
-                                            foundJobTitle = jobInfo;
-                                            foundJob = true;
-                                            break;
-                                        }
-                                    }
-                                    if (!foundJob) {
-                                        errorHandling.jobNotFound(file);
-                                        confirmDialog.dispose();
-                                        return;
-                                    }
-                                    String[] exams = infos.examArray;
-                                    for (String examInfo : exams) {
-                                        if (result.toLowerCase().contains(functions.normalizeString(examInfo))) {
-                                            foundExamTitle = examInfo;
-                                            foundExam = true;
-                                            break;
-                                        }
-                                    }
-                                    if (foundExam) {
-                                        if (foundExamTitle.equals("WISO") || foundExamTitle.equals("Wirtschaftskunde")) {
-                                            foundExamTitle = "WISO";
-                                        } else if (foundExamTitle.equals("AP1") || foundExamTitle.equals("AP 1") || foundExamTitle.equals("Abschlussprüfung Teil 1") || foundExamTitle.equals("Abschlussprüfung Teil1")) {
-                                            foundExamTitle = "AP1";
-                                        } else if (foundExamTitle.equals("AP2") || foundExamTitle.equals("AP 2") || foundExamTitle.equals("Abschlusspüfung Teil 2") || foundExamTitle.equals("Abschlussprüfung Teil2")) {
-                                            foundExamTitle = "AP2";
-                                        }
-                                    } else {
-                                        errorHandling.examNotFound(file);
-                                        return;
-                                    }
-                                    String[] semesters = infos.semArray;
-                                    for (String semesterInfo : semesters) {
-                                        if (result.toLowerCase().contains(functions.normalizeString(semesterInfo))) {
-                                            foundSemesterTitle = semesterInfo;
-                                            foundSemester = true;
-                                            break;
-                                        }
-                                    }
-                                    if (foundSemester) {
-                                        if (foundSemesterTitle.equals("Sommer23") || foundSemesterTitle.equals("Sommer 23")) {
-                                            foundSemesterTitle = "Sommer 23";
-                                        } else if (foundSemesterTitle.equals("Winter2324") || foundSemesterTitle.equals("Winter 23/24") || foundSemesterTitle.equals("Winter23/24") || foundSemesterTitle.equals("Winter 2324")
-                                                || foundSemesterTitle.equals("Winter 23-24") || foundSemesterTitle.equals("Winter 23 24") || foundSemesterTitle.equals("Winter 23-24")) {
-                                            foundSemesterTitle = "Winter 23/24";
-                                        }
-                                    } else {
-                                        errorHandling.semesterNotFound(file);
-                                        return;
-                                    }
-                                    document.close();
-                                    if (foundJob && foundExam && foundSemester) {
-                                        String jobFolderId = gdrive.getOrCreateFolderId(drive, foundJobTitle, "root");
-                                        String examFolderId = gdrive.getOrCreateFolderId(drive, foundExamTitle, jobFolderId);
-                                        String semesterFolderId = gdrive.getOrCreateFolderId(drive, foundSemesterTitle, examFolderId);
-                                        //rename file
-                                        String timestamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());
-                                        String newFileName = foundJobTitle + "_" + foundExamTitle + "_" + foundSemesterTitle + "_" + fileName.substring(0, fileName.lastIndexOf(".")) + "_" + timestamp;
-                                        //Upload
-                                        File fileMetadata = new File();
-                                        fileMetadata.setName(newFileName);
-                                        fileMetadata.setParents(Collections.singletonList(semesterFolderId));
-                                        File newFile = drive.files().create(fileMetadata).execute();
-                                        String fileId = newFile.getId();
-                                        java.io.File fileContent = new java.io.File(file.getAbsolutePath());
-                                        ByteArrayContent content = new ByteArrayContent("application/octet-stream", Files.readAllBytes(fileContent.toPath()));
-                                        Drive.Files.Update update = drive.files().update(fileId, null, content);
-                                        update.execute();
-                                        confirmDialog.dispose();
-                                    } else {
-                                        errorHandling.lessInfos(file);
-                                        return;
+                        try {
+                            PDDocument document = PDDocument.load(file);
+                            for (int i = 0; i < document.getNumberOfPages(); i++) {
+                                PDFTextStripper pdfStripper = new PDFTextStripper();
+                                String result = pdfStripper.getText(document);
+                                String[] jobs = infos.jobArray;
+                                for (String jobInfo : jobs) {
+                                    if (result.toLowerCase().contains(functions.normalizeString(jobInfo))) {
+                                        foundJobTitle = jobInfo;
+                                        foundJob = true;
+                                        break;
                                     }
                                 }
-                            } catch (Exception ex) {
-                                ex.printStackTrace();
+                                if (!foundJob) {
+                                    errorHandling.jobNotFound(file);
+                                    confirmDialog.dispose();
+                                    return;
+                                }
+                                String[] exams = infos.examArray;
+                                for (String examInfo : exams) {
+                                    if (result.toLowerCase().contains(functions.normalizeString(examInfo))) {
+                                        foundExamTitle = examInfo;
+                                        foundExam = true;
+                                        break;
+                                    }
+                                }
+                                if (foundExam) {
+                                    if (foundExamTitle.equals("WISO") || foundExamTitle.equals("Wirtschaftskunde")) {
+                                        foundExamTitle = "WISO";
+                                    } else if (foundExamTitle.equals("AP1") || foundExamTitle.equals("AP 1") || foundExamTitle.equals("Abschlussprüfung Teil 1") || foundExamTitle.equals("Abschlussprüfung Teil1")) {
+                                        foundExamTitle = "AP1";
+                                    } else if (foundExamTitle.equals("AP2") || foundExamTitle.equals("AP 2") || foundExamTitle.equals("Abschlusspüfung Teil 2") || foundExamTitle.equals("Abschlussprüfung Teil2")) {
+                                        foundExamTitle = "AP2";
+                                    }
+                                } else {
+                                    errorHandling.examNotFound(file);
+                                    return;
+                                }
+                                String[] semesters = infos.semArray;
+                                for (String semesterInfo : semesters) {
+                                    if (result.toLowerCase().contains(functions.normalizeString(semesterInfo))) {
+                                        foundSemesterTitle = semesterInfo;
+                                        foundSemester = true;
+                                        break;
+                                    }
+                                }
+                                if (foundSemester) {
+                                    if (foundSemesterTitle.equals("Sommer23") || foundSemesterTitle.equals("Sommer 23")) {
+                                        foundSemesterTitle = "Sommer 23";
+                                    } else if (foundSemesterTitle.equals("Winter2324") || foundSemesterTitle.equals("Winter 23/24") || foundSemesterTitle.equals("Winter23/24") || foundSemesterTitle.equals("Winter 2324")
+                                            || foundSemesterTitle.equals("Winter 23-24") || foundSemesterTitle.equals("Winter 23 24") || foundSemesterTitle.equals("Winter 23-24")) {
+                                        foundSemesterTitle = "Winter 23/24";
+                                    }
+                                } else {
+                                    errorHandling.semesterNotFound(file);
+                                    return;
+                                }
+                                document.close();
+                                if (foundJob && foundExam && foundSemester) {
+                                    String jobFolderId = gdrive.getOrCreateFolderId(drive, foundJobTitle, "root");
+                                    String examFolderId = gdrive.getOrCreateFolderId(drive, foundExamTitle, jobFolderId);
+                                    String semesterFolderId = gdrive.getOrCreateFolderId(drive, foundSemesterTitle, examFolderId);
+                                    //rename file
+                                    String timestamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());
+                                    String newFileName = foundJobTitle + "_" + foundExamTitle + "_" + foundSemesterTitle + "_" + fileName.substring(0, fileName.lastIndexOf(".")) + "_" + timestamp;
+                                    //Upload
+                                    File fileMetadata = new File();
+                                    fileMetadata.setName(newFileName);
+                                    fileMetadata.setParents(Collections.singletonList(semesterFolderId));
+                                    File newFile = drive.files().create(fileMetadata).execute();
+                                    String fileId = newFile.getId();
+                                    java.io.File fileContent = new java.io.File(file.getAbsolutePath());
+                                    ByteArrayContent content = new ByteArrayContent("application/octet-stream", Files.readAllBytes(fileContent.toPath()));
+                                    Drive.Files.Update update = drive.files().update(fileId, null, content);
+                                    update.execute();
+                                    confirmDialog.dispose();
+                                } else {
+                                    errorHandling.lessInfos(file);
+                                    return;
+                                }
                             }
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
                     });
 
-                    noButton.addActionListener(ev -> {confirmDialog.dispose();});
+                    noButton.addActionListener(ev -> {
+                        confirmDialog.dispose();
+                    });
 
                     //UploadPanel
                     JPanel buttonPanel = new JPanel();
@@ -652,7 +692,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         }
         e.dropComplete(true);
     }
-
 
     @Override
     public void dragEnter(DropTargetDragEvent e) {
@@ -694,7 +733,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         }
     }
 
-
     @Override
     public void mouseClicked(MouseEvent e) {
     }
@@ -712,8 +750,4 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
     public void mouseExited(MouseEvent mouseEvent) {
     }
 
-    public static void main(String[] args) {
-        guiView gui = new guiView();
-        gui.setVisible(true);
-    }
 }

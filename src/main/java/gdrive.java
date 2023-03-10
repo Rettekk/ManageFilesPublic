@@ -11,16 +11,15 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+
+import java.io.*;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
 import com.google.api.client.googleapis.services.CommonGoogleClientRequestInitializer;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
+import org.apache.pdfbox.pdmodel.PDDocument;
 
 /* class to demonstarte use of Drive files list API */
 public class gdrive {
@@ -118,5 +117,26 @@ public class gdrive {
         File folder = drive.files().create(folderMetadata).setFields("id").execute();
 
         return folder.getId();
+    }
+
+    public static void downloadFile(Drive driveService, String fileId) throws IOException {
+        File file;
+        try {
+            file = driveService.files().get(fileId).execute();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        String downloadFolderPath = System.getProperty("user.home") + "/Downloads/";
+        String filename = file.getName();
+        java.io.File downloadFile = new java.io.File(downloadFolderPath + filename);
+        FileOutputStream outputStream = new FileOutputStream(downloadFile);
+        driveService.files().get(fileId).executeMediaAndDownloadTo(outputStream);
+        outputStream.close();
+        PDDocument document = PDDocument.load(downloadFile);
+        if (!document.isEncrypted()) {
+            document.save(downloadFolderPath + filename + ".pdf");
+        }
+        document.close();
+        downloadFile.delete();
     }
 }
