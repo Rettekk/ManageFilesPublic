@@ -8,7 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class login extends JFrame{
+public class login extends JFrame {
 
     private JLabel userLabel, passwordLabel, statusLabel;
     private JTextField userTextField;
@@ -56,6 +56,7 @@ public class login extends JFrame{
         helpMenu = new JMenu("Hilfe");
         cred = new JMenuItem("Credits");
         howTo = new JMenuItem("Bedienung");
+        JMenuItem showTrash = new JMenuItem("Papierkorb anzeigen");
         startMenu.add(addFile).setEnabled(false);
         startMenu.add(delFile).setEnabled(false);
         startMenu.add(showCloud).setEnabled(false);
@@ -66,45 +67,37 @@ public class login extends JFrame{
         startMenu.add(exit);
         helpMenu.add(cred);
         helpMenu.add(howTo);
+        helpMenu.add(showTrash).setEnabled(false);
         menuBar.add(startMenu);
         menuBar.add(helpMenu);
         setJMenuBar(menuBar);
         setVisible(true);
 
-        userTextField.setText("Test");
-        passwordField.setText("Test123");
-
         exit.addActionListener(e -> System.exit(0));
+
+        userTextField.setText("lehrer");
+        passwordField.setText("lehrer123");
 
         loginButton.addActionListener(e -> {
             String userName = userTextField.getText();
             String passWord = String.valueOf(passwordField.getPassword());
             try {
-                database.openDataBaseConnection();
-                Statement stmt = database.connection.createStatement();
-                PreparedStatement pStatement = database.connection.prepareStatement(database.SQL_SELECT);
-                pStatement.setString(1, userName);
-                pStatement.setString(2, passWord);
-                ResultSet rs = pStatement.executeQuery();
-                if(rs.next()) {
-                    String passwordDb = rs.getString("password");
-                   if(passwordDb.equals(passWord)) {
-                       errorHandling.forward();
-                     guiView gui = new guiView();
-                     gui.setVisible(true);
-                     dispose();
-                   }
+                if (database.login(userName, passWord)) {
+                    errorHandling.forward();
+                    guiView gui = new guiView(userName);
+                    gui.setVisible(true);
+                    dispose();
                 } else {
                     errorHandling.wrongInput();
                 }
-                database.closeDataBaseConnection();
             } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            } catch (ClassNotFoundException ex) {
                 throw new RuntimeException(ex);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
+            } catch (ClassNotFoundException ex) {
+                throw new RuntimeException(ex);
             }
+
 
         });
     }

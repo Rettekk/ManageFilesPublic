@@ -50,4 +50,29 @@ public class errorHandling {
     public static void wrongInput() {
         JOptionPane.showMessageDialog(null, "Benutzername oder Passwort falsch!", "Fehler", JOptionPane.ERROR_MESSAGE);
     }
+
+    public static void deleteOnlyOneFolder() {
+        System.out.println("Es kann nur ein Ordner gelöscht werden.");
+    }
+
+    public static void noPermission() {
+        JOptionPane.showMessageDialog(null, "Sie haben keine ausreichenden Rechte, um diese Datei herunterzuladen.", "Keine Berechtigung", JOptionPane.ERROR_MESSAGE);
+
+    }
+
+    public static void trashErrorRevokeFile(Exception e) {
+        JOptionPane.showMessageDialog(null, "Fehler beim Wiederherstellen der Datei: " + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public static void trashError(Exception e) {
+        JOptionPane.showMessageDialog(null, "Fehler beim Laden des Papierkorbs: " + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public static void noPermissionRevoke() {
+        JOptionPane.showMessageDialog(null, "Sie haben keine ausreichenden Rechte, um diese Datei wiederherzustellen.", "Keine Berechtigung", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public static void errorLoadingCloudOverview(Exception e) {
+        JOptionPane.showMessageDialog(null, "Fehler beim Laden der Cloud-Übersicht: " + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+    }
 }
