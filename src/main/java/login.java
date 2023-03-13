@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -73,44 +74,38 @@ public class login extends JFrame{
         userTextField.setText("Test");
         passwordField.setText("Test123");
 
-        exit.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.exit(0);
-            }
-        });
+        exit.addActionListener(e -> System.exit(0));
 
-        loginButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String userName = userTextField.getText();
-                String passWord = String.valueOf(passwordField.getPassword());
-                try {
-                    database.openDataBaseConnection();
-                    Statement stmt = database.connection.createStatement();
-                    PreparedStatement pStatement = database.connection.prepareStatement(database.SQL_SELECT);
-                    pStatement.setString(1, userName);
-                    pStatement.setString(2, passWord);
-                    ResultSet rs = pStatement.executeQuery();
-                    if(rs.next()) {
-                        String passwordDb = rs.getString("password");
-                       if(passwordDb.equals(passWord)) {
-                           JOptionPane.showMessageDialog(null, "Sie werden nun weitergeleitet.", "Erfolgreich", JOptionPane.INFORMATION_MESSAGE);
-                         guiView gui = new guiView();
-                         gui.setVisible(true);
-                         dispose();
-                       }
-                    } else {
-                        JOptionPane.showMessageDialog(null, "Benutzername oder Passwort falsch!", "Fehler", JOptionPane.ERROR_MESSAGE);
-                    }
-                    database.closeDataBaseConnection();
-                } catch (SQLException ex) {
-                    throw new RuntimeException(ex);
-                } catch (ClassNotFoundException ex) {
-                    throw new RuntimeException(ex);
+        loginButton.addActionListener(e -> {
+            String userName = userTextField.getText();
+            String passWord = String.valueOf(passwordField.getPassword());
+            try {
+                database.openDataBaseConnection();
+                Statement stmt = database.connection.createStatement();
+                PreparedStatement pStatement = database.connection.prepareStatement(database.SQL_SELECT);
+                pStatement.setString(1, userName);
+                pStatement.setString(2, passWord);
+                ResultSet rs = pStatement.executeQuery();
+                if(rs.next()) {
+                    String passwordDb = rs.getString("password");
+                   if(passwordDb.equals(passWord)) {
+                       errorHandling.forward();
+                     guiView gui = new guiView();
+                     gui.setVisible(true);
+                     dispose();
+                   }
+                } else {
+                    errorHandling.wrongInput();
                 }
-
+                database.closeDataBaseConnection();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            } catch (ClassNotFoundException ex) {
+                throw new RuntimeException(ex);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
             }
+
         });
     }
 }

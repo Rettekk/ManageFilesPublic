@@ -42,4 +42,12 @@ public class errorHandling {
     public static void successDownloadFile() {
         JOptionPane.showMessageDialog(null, "Die Datei wurde erfolgreich heruntergeladen und befindet sich im Download-Ordner.");
     }
+
+    public static void forward() {
+        JOptionPane.showMessageDialog(null, "Sie werden nun weitergeleitet.", "Erfolgreich", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public static void wrongInput() {
+        JOptionPane.showMessageDialog(null, "Benutzername oder Passwort falsch!", "Fehler", JOptionPane.ERROR_MESSAGE);
+    }
 }

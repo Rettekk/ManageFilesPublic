@@ -12,10 +12,12 @@ public class database {
     static String db_url;
     static String username;
     static String passwort;
-    static String driver = "com.mysql.jdbc.Driver";
+    static String sqlDriver = "com.mysql.jdbc.Driver";
+    static String postgresDriver = "org.postgresql.Driver";
     public static String SQL_SELECT = "SELECT username, password FROM users WHERE username = ? AND password = ?";
+    public static String SQL_DLFIELD = "SELECT dlField FROM users WHERE username = ?";
 
-    static void openDataBaseConnection() throws SQLException, ClassNotFoundException, IOException {
+    static void openDataBaseConnection() throws IOException, ClassNotFoundException, SQLException {
         Properties prop = new Properties();
         InputStream input = new FileInputStream("config.properties");
         prop.load(input);
@@ -23,7 +25,7 @@ public class database {
         username = prop.getProperty("db_username");
         passwort = prop.getProperty("db_password");
 
-        Class.forName(driver);
+        Class.forName(postgresDriver);
         System.out.println("Opening database connection...");
         connection = DriverManager.getConnection(db_url, username, passwort);
         System.out.println("Connection valid: " + connection.isValid(0));
