@@ -6,8 +6,10 @@ import java.util.Properties;
 
 public class database {
 
-    public static String SQL_SELECT = "SELECT username, password FROM users WHERE username = ? AND password = ?";
-    public static String SQL_RIGHTS = "SELECT rights, dlFile FROM users WHERE username = ?";
+    public static String SQL_SELECT = "SELECT username, password FROM public.user WHERE username = ? AND password = ?";
+    public static String SQL_RIGHTS = "SELECT rights, dlfile FROM public.user WHERE username = ?";
+    static String SQL_Register = "SELECT * FROM applicationkey WHERE keyid=?";
+    static String SQL_InserUser = "INSERT INTO user (username, password, rights, dlfile) VALUES (?, ?, ?, ?)";
     static Connection connection;
     static String db_url;
     static String username;
@@ -24,8 +26,7 @@ public class database {
         username = prop.getProperty("db_username");
         passwort = prop.getProperty("db_password");
 
-        // Class.forName(postgresDriver);
-        Class.forName(sqlDriver);
+        Class.forName(postgresDriver);
         System.out.println("Opening database connection...");
         connection = DriverManager.getConnection(db_url, username, passwort);
         System.out.println("Connection valid: " + connection.isValid(0));
@@ -65,4 +66,46 @@ public class database {
         database.closeDataBaseConnection();
         return permissions;
     }
+    static boolean checkToken(String token, String rights, String dlfiles) {
+        try {
+            openDataBaseConnection();
+            PreparedStatement stmt = database.connection.prepareStatement(SQL_Register);
+            stmt.setString(1, token);
+            stmt.setString(2, rights);
+            stmt.setString(3, dlfiles);
+            ResultSet rs = stmt.executeQuery();
+            boolean result = rs.next();
+            rs.close();
+            stmt.close();
+            closeDataBaseConnection();
+            return result;
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
+        } catch (ClassNotFoundException ex) {
+            throw new RuntimeException(ex);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public static void insertUser(String username, String password, String rights, boolean dlfile) throws SQLException {
+        try {
+            openDataBaseConnection();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        PreparedStatement stmt = database.connection.prepareStatement(SQL_InserUser);
+        stmt.setString(1, username);
+        stmt.setString(2, password);
+        stmt.setString(3, rights);
+        stmt.setBoolean(4, dlfile);
+        stmt.executeUpdate();
+        stmt.close();
+        closeDataBaseConnection();
+    }
+
+
 }

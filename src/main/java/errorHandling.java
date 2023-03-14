@@ -75,4 +75,8 @@ public class errorHandling {
     public static void errorLoadingCloudOverview(Exception e) {
         JOptionPane.showMessageDialog(null, "Fehler beim Laden der Cloud-Übersicht: " + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
     }
+
+    public static void fillAllFields() {
+        JOptionPane.showMessageDialog(null, "Bitte geben Sie alle Felder ein.");
+    }
 }
