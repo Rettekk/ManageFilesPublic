@@ -1,6 +1,5 @@
-file herunterladen
-Rechteverteilung (ordner löschen, hinzufügen und datei löschen nur für admins)
-refactoring
 ladescreen
-verbessetes errorhanling
 mehrere dateien auf einmal hoch laden und ein großes dialogfenster dann anzeigenn
+mein server db einrichten (postgres)
+optik
+tabs schließen können

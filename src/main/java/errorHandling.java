@@ -26,4 +26,53 @@ public class errorHandling {
     public static void semesterNotFound(File file) {
         JOptionPane.showMessageDialog(null, "Das Semester wurde in der Datei  " + file.getName() + " nicht gefunden. Die Datei wird nicht hochgeladen.");
     }
+
+    public static void fileWrongPw() {
+        JOptionPane.showMessageDialog(null, "Das Passwort ist falsch! Bitte wenden Sie sich an Ihren Administrator.");
+    }
+
+    public static void errorDownloadFile(Exception e) {
+        JOptionPane.showMessageDialog(null, "Fehler beim Herunterladen der Datei: " + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public static void maxAttemptsWrongPw() {
+        JOptionPane.showMessageDialog(null, "Sie haben 3 falsche Passwörter eingegeben. Sie werden nun ausgeloggt.");
+    }
+
+    public static void successDownloadFile() {
+        JOptionPane.showMessageDialog(null, "Die Datei wurde erfolgreich heruntergeladen und befindet sich im Download-Ordner.");
+    }
+
+    public static void forward() {
+        JOptionPane.showMessageDialog(null, "Sie werden nun weitergeleitet.", "Erfolgreich", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public static void wrongInput() {
+        JOptionPane.showMessageDialog(null, "Benutzername oder Passwort falsch!", "Fehler", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public static void deleteOnlyOneFolder() {
+        System.out.println("Es kann nur ein Ordner gelöscht werden.");
+    }
+
+    public static void noPermission() {
+        JOptionPane.showMessageDialog(null, "Sie haben keine ausreichenden Rechte, um diese Datei herunterzuladen.", "Keine Berechtigung", JOptionPane.ERROR_MESSAGE);
+
+    }
+
+    public static void trashErrorRevokeFile(Exception e) {
+        JOptionPane.showMessageDialog(null, "Fehler beim Wiederherstellen der Datei: " + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public static void trashError(Exception e) {
+        JOptionPane.showMessageDialog(null, "Fehler beim Laden des Papierkorbs: " + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public static void noPermissionRevoke() {
+        JOptionPane.showMessageDialog(null, "Sie haben keine ausreichenden Rechte, um diese Datei wiederherzustellen.", "Keine Berechtigung", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public static void errorLoadingCloudOverview(Exception e) {
+        JOptionPane.showMessageDialog(null, "Fehler beim Laden der Cloud-Übersicht: " + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+    }
 }
