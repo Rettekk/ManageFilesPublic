@@ -1,10 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
+import java.io.IOException;
 import java.sql.SQLException;
 
 public class registerView extends JFrame {
@@ -19,7 +15,6 @@ public class registerView extends JFrame {
     private final JButton registerButton;
 
     public registerView() {
-        // initialize UI components
         titleLabel = new JLabel("Registrierung - ManageMyFiles");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         titleLabel.setHorizontalAlignment(JLabel.CENTER);
@@ -31,7 +26,6 @@ public class registerView extends JFrame {
         tokenField = new JTextField();
         registerButton = new JButton("Registrieren");
 
-        // set layout
         JPanel panel = new JPanel(new GridLayout(4, 2, 5, 5));
         panel.add(usernameLabel);
         panel.add(usernameField);
@@ -48,24 +42,41 @@ public class registerView extends JFrame {
         setTitle("Registrierung - ManageMyFiles");
         setResizable(false);
 
-
         registerButton.addActionListener(e -> {
+            System.out.println("Register Button clicked");
             String userName = usernameField.getText();
             String passWord = String.valueOf(passwordField.getPassword());
             String token = tokenField.getText();
-            if (userName.length() < 5) {
-            JOptionPane.showMessageDialog(null, "Der Benutzername muss mindestens 5 Zeichen haben.");
-            } else if (passWord.length() < 8) {
-                JOptionPane.showMessageDialog(null, "Das Passwort muss mindestens 8 Zeichen haben.");
-            } else if (!database.checkToken(token)) {
-                JOptionPane.showMessageDialog(null, "Der Registrierungstoken ist ungültig.");
-            } else if (database.checkToken(String.valueOf(token.equals(token)))) {
-                database.insertUser(userName, passWord,
+            if (functions.checkData(passWord, userName)) {
+                checkTokenAndRights tokenResult = checkTokenAndRights.checkToken(token);
+                boolean validToken = tokenResult.valid;
+                String rights = tokenResult.rights;
+                boolean dlfile = tokenResult.dlfile;
+                if (validToken) {
+                    try {
+                        int insertValid = database.insertUser(userName, passWord, rights, dlfile);
+                        if (insertValid == 1) {
+                            errorHandling.confirmregister();
+                            database.deleteToken(token);
+                            dispose();
+                        } else {
+                            errorHandling.errorRegister();
+                        }
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (ClassNotFoundException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                } else {
+                    errorHandling.errorRegister();
+                }
             }
         });
+
         setLayout(new BorderLayout());
         add(titleLabel, BorderLayout.NORTH);
         add(panel, BorderLayout.CENTER);
     }
-
 }

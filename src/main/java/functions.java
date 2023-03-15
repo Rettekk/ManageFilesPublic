@@ -25,4 +25,15 @@ public class functions {
         login.setVisible(true);
         gui.setVisible(false);
     }
+    static boolean checkData(String password, String username) {
+        if (password.length() < 8) {
+            JOptionPane.showMessageDialog(null, "Das Passwort muss mindestens 8 Zeichen haben.");
+            return false;
+        }
+        if (username.length() < 5) {
+            JOptionPane.showMessageDialog(null, "Der Benutzername muss mindestens 5 Zeichen haben.");
+            return false;
+        }
+        return true;
+    }
 }

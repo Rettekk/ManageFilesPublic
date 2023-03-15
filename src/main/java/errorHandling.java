@@ -79,4 +79,12 @@ public class errorHandling {
     public static void fillAllFields() {
         JOptionPane.showMessageDialog(null, "Bitte geben Sie alle Felder ein.");
     }
+
+    public static void errorRegister() {
+        JOptionPane.showMessageDialog(null, "Der Registrierungstoken ist falsch.");
+    }
+
+    public static void confirmregister() {
+        JOptionPane.showMessageDialog(null, "Registrierung erfolgreich!");
+    }
 }
