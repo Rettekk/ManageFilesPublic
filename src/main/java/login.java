@@ -2,6 +2,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,6 +19,7 @@ public class login extends JFrame {
 
     private JMenuItem addFile, delFile, showCloud, authorize, cred, howTo, disc, exit, logOff;
     private JMenu startMenu, helpMenu;
+    private JLabel registerLabel;
 
     public login() {
         setTitle("ManageMyFiles - Login");
@@ -26,6 +29,19 @@ public class login extends JFrame {
         setResizable(false);
         setLocationRelativeTo(null);
 
+
+        registerLabel = new JLabel("Kein Konto?");
+        registerLabel.setForeground(Color.BLUE);
+        registerLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        registerLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                registerView register = new registerView();
+                register.setVisible(true);
+            }
+        });
+
+
         userLabel = new JLabel("Benutzername:");
         passwordLabel = new JLabel("Passwort:");
         userTextField = new JTextField();
@@ -33,11 +49,13 @@ public class login extends JFrame {
         loginButton = new JButton("Anmelden");
         statusLabel = new JLabel("");
 
-        JPanel panel = new JPanel(new GridLayout(3, 2));
+        JPanel panel = new JPanel(new GridLayout(4, 4));
         panel.add(userLabel);
         panel.add(userTextField);
         panel.add(passwordLabel);
         panel.add(passwordField);
+        panel.add(registerLabel);
+        panel.add(new JLabel());
         panel.add(new JLabel());
         panel.add(loginButton);
 
