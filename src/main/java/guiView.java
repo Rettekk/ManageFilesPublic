@@ -79,6 +79,8 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         cred = new JMenuItem("Credits");
         howTo = new JMenuItem("Bedienung");
         JMenuItem showTrash = new JMenuItem("Papierkorb anzeigen");
+        JLabel loggedInLabel = new JLabel("Angemeldet als " + loginName);
+        loggedInLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
 
         TextField searchField = new TextField();
         searchField.setPreferredSize(new Dimension(150, 20));
@@ -98,6 +100,8 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         menuBar.add(startMenu);
         menuBar.add(helpMenu);
         menuBar.add(searchPanel);
+        menuBar.add(Box.createHorizontalGlue());
+        menuBar.add(loggedInLabel);
         searchPanel.setVisible(false);
         startMenu.add(exit);
         startMenu.add(disc).setEnabled(false);
@@ -524,7 +528,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         } else {
             JProgressBar progressBar = new JProgressBar();
             progressBar.setIndeterminate(true);
-            JLabel progressLabel = new JLabel("Lade Daten von Google Drive...<br>Dies kann einige Minuten dauern.");
+            JLabel progressLabel = new JLabel("");
             JPanel panel = new JPanel();
             panel.add(progressBar);
             panel.add(progressLabel);
@@ -656,22 +660,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             Transferable t = e.getTransferable();
             List<java.io.File> files = (List<java.io.File>) t.getTransferData(DataFlavor.javaFileListFlavor);
             for (java.io.File file : files) {
-
-                long totalBytes = file.length();
-                long bytesUploaded = 0;
-                String progressMessage = "Hochladen... ";
-                JProgressBar progressBar = new JProgressBar(0, 100);
-                progressBar.setString(progressMessage);
-                progressBar.setStringPainted(true);
-                JPanel progressPanel = new JPanel(new BorderLayout());
-                progressPanel.add(progressBar, BorderLayout.NORTH);
-                JDialog progressDialog = new JDialog(gui, "Hochladen", true);
-                progressDialog.getContentPane().add(progressPanel);
-                progressDialog.pack();
-                progressDialog.setLocationRelativeTo(gui);
-                progressDialog.setVisible(true);
-
-
                 String fileName = file.getName();
                 String fileSize = String.valueOf(file.length() / 1024);
                 Drive drive = gdrive.getDriveService();
