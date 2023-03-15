@@ -18,12 +18,11 @@ public class checkTokenAndRights {
     }
 
 
-    static checkTokenAndRights checkToken(String token) {
+    static checkTokenAndRights checkToken(int token) {
         try {
             database.openDataBaseConnection();
             PreparedStatement stmt = database.connection.prepareStatement(database.SQL_Register);
-            BigDecimal tokenNumeric = new BigDecimal(token);
-            stmt.setString(1, String.valueOf(tokenNumeric));
+            stmt.setInt(1, token);
             ResultSet rs = stmt.executeQuery();
             boolean result = rs.next();
             boolean dlfile = false;

@@ -139,4 +139,13 @@ public class gdrive {
         document.close();
         downloadFile.delete();
     }
+
+    public static boolean isTokenValid(Credential credential) {
+        try {
+            credential.refreshToken();
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
 }
