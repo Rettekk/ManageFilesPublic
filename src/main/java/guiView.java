@@ -1,9 +1,13 @@
+import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.http.ByteArrayContent;
+import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.kordamp.ikonli.materialdesign.MaterialDesign;
+import org.kordamp.ikonli.swing.FontIcon;
 
 import javax.swing.*;
 import javax.swing.tree.*;
@@ -53,10 +57,11 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
 
 
     public guiView(String loginName) throws SQLException, IOException, ClassNotFoundException {
+        System.setProperty("file.encoding", "UTF-8");
         this.loginName = loginName;
         permissions = database.getPermission(loginName);
         gui = new JFrame();
-        gui.setTitle("ManageMyFiles - IHK - PrÃ¼fungsunterlegen sortieren");
+        gui.setTitle("ManageMyFiles - IHK - Prüfungsunterlegen sortieren");
         gui.setName("ManageMyFiles");
         gui.setBounds(100, 100, 800, 600);
         gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -74,6 +79,8 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         cred = new JMenuItem("Credits");
         howTo = new JMenuItem("Bedienung");
         JMenuItem showTrash = new JMenuItem("Papierkorb anzeigen");
+        JLabel loggedInLabel = new JLabel("Angemeldet als " + loginName);
+        loggedInLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
 
         TextField searchField = new TextField();
         searchField.setPreferredSize(new Dimension(150, 20));
@@ -93,6 +100,8 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         menuBar.add(startMenu);
         menuBar.add(helpMenu);
         menuBar.add(searchPanel);
+        menuBar.add(Box.createHorizontalGlue());
+        menuBar.add(loggedInLabel);
         searchPanel.setVisible(false);
         startMenu.add(exit);
         startMenu.add(disc).setEnabled(false);
@@ -155,18 +164,27 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
 
 
         authorize.addActionListener(e -> {
-            gdriveAuthorize();
-            addFile.setEnabled(true);
-            showCloud.setEnabled(true);
-            authorize.setEnabled(false);
-            disc.setEnabled(true);
-            logOff.setEnabled(true);
-            showTrash.setEnabled(permissions[0] || permissions[2]);
-            addFileTab = new JPanel(new BorderLayout());
-            addFileTab.setPreferredSize(new Dimension(500, 300));
-            scrollPane = new JScrollPane(table);
-            scrollPane.setPreferredSize(new Dimension(800, 300));
-            addFileTab.add(scrollPane, BorderLayout.CENTER);
+            try {
+                if (gdrive.isTokenValid(gdrive.getCredentials(new NetHttpTransport()))) {
+                    gdriveAuthorize();
+                    addFile.setEnabled(true);
+                    showCloud.setEnabled(true);
+                    authorize.setEnabled(false);
+                    disc.setEnabled(true);
+                    logOff.setEnabled(true);
+                    showTrash.setEnabled(permissions[0] || permissions[2]);
+                    addFileTab = new JPanel(new BorderLayout());
+                    addFileTab.setPreferredSize(new Dimension(500, 300));
+                    scrollPane = new JScrollPane(table);
+                    scrollPane.setPreferredSize(new Dimension(800, 300));
+                    addFileTab.add(scrollPane, BorderLayout.CENTER);
+                } else {
+                    gdrive.revokeDriveConnection();
+                    gdriveAuthorize();
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         });
 
         showCloud.addActionListener(e -> {
@@ -178,7 +196,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             dropPanel.setPreferredSize(new Dimension(500, 300));
             dropPanel.add(dropLabel, BorderLayout.NORTH);
             gui.add(dropPanel);
-            tabpane.addTab("Datei hinzufÃ¼gen", dropPanel);
+            tabpane.addTab("Datei hinzufügen", dropPanel);
             tabpane.setSelectedIndex(tabpane.getTabCount() - 1);
         });
 
@@ -202,11 +220,11 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
     public void showContextMenu(int x, int y) {
         menu = new JPopupMenu();
         JMenuItem downloadFile = new JMenuItem("Datei herunterladen");
-        deleteItem = new JMenuItem("Datei lÃ¶schen");
+        deleteItem = new JMenuItem("Datei löschen");
         renameFileItem = new JMenuItem("Datei umbenennen");
-        createFolderItem = new JMenuItem("Ordner hinzufÃ¼gen");
+        createFolderItem = new JMenuItem("Ordner hinzufügen");
         JMenuItem renameFolderItem = new JMenuItem("Ordner umbenennen");
-        JMenuItem deleteFolderItem = new JMenuItem("Ordner lÃ¶schen");
+        JMenuItem deleteFolderItem = new JMenuItem("Ordner löschen");
 
         downloadFile.setEnabled(permissions[2]);
         deleteItem.setEnabled(permissions[0]);
@@ -272,7 +290,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
                 .execute();
         List<File> files = result.getFiles();
         if (files.size() > 0) {
-            int choice = JOptionPane.showConfirmDialog(null, "Der Ordner enthÃ¤lt " + files.size() + " Unterordner oder Dateien. MÃ¶chten Sie den Ordner und alle Unterordner und Dateien lÃ¶schen?", "BestÃ¤tigung", JOptionPane.YES_NO_OPTION);
+            int choice = JOptionPane.showConfirmDialog(null, "Der Ordner enthält " + files.size() + " Unterordner oder Dateien. Möchten Sie den Ordner und alle Unterordner und Dateien löschen?", "Bestätigung", JOptionPane.YES_NO_OPTION);
             if (choice != JOptionPane.YES_OPTION) {
                 return;
             }
@@ -299,7 +317,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             }
         }
 
-        int choice = JOptionPane.showConfirmDialog(null, "Wollen Sie den Ordner wirklich lÃ¶schen?", "BestÃ¤tigung", JOptionPane.YES_NO_OPTION);
+        int choice = JOptionPane.showConfirmDialog(null, "Wollen Sie den Ordner wirklich löschen?", "Bestätigung", JOptionPane.YES_NO_OPTION);
         if (choice != JOptionPane.YES_OPTION) {
             service.files().delete(folderId).execute();
         }
@@ -340,7 +358,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         try {
             Drive service = gdrive.getDriveService();
 
-            String newFolderName = JOptionPane.showInputDialog("Bitte einen Name fÃ¼r den Ordner eingeben:");
+            String newFolderName = JOptionPane.showInputDialog("Bitte einen Name für den Ordner eingeben:");
             File fileMetadata = new File();
             fileMetadata.setName(newFolderName);
             fileMetadata.setMimeType("application/vnd.google-apps.folder");
@@ -381,7 +399,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         if (selectedNode == null) {
             return;
         }
-        int result = JOptionPane.showConfirmDialog(null, "MÃ¶chten Sie diese Datei wirklich lÃ¶schen?", "Warnung", JOptionPane.YES_NO_OPTION);
+        int result = JOptionPane.showConfirmDialog(null, "Möchten Sie diese Datei wirklich löschen?", "Warnung", JOptionPane.YES_NO_OPTION);
         if (result != JOptionPane.YES_OPTION) {
             return;
         }
@@ -426,7 +444,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
                 if (userObject instanceof File) {
                     File fileToRename = (File) userObject;
                     String currentName = fileToRename.getName();
-                    String newName = JOptionPane.showInputDialog("Geben Sie den neuen Namen fÃ¼r die Datei ein:", currentName);
+                    String newName = JOptionPane.showInputDialog("Geben Sie den neuen Namen für die Datei ein:", currentName);
                     if (newName != null && !newName.equals(currentName)) {
                         File updatedFile = new File();
                         updatedFile.setName(newName);
@@ -483,7 +501,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
                         if (evt.getClickCount() == 2) {
                             int index = list.locationToIndex(evt.getPoint());
                             File file = model.getElementAt(index);
-                            if (JOptionPane.showConfirmDialog(null, "MÃ¶chten Sie diese Datei aus dem Papierkorb wiederherstellen?", "Datei wiederherstellen", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                            if (JOptionPane.showConfirmDialog(null, "Möchten Sie diese Datei aus dem Papierkorb wiederherstellen?", "Datei wiederherstellen", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                                 try {
                                     service.files().update(file.getId(), new File().setTrashed(false)).execute();
                                     model.removeElementAt(index);
@@ -542,7 +560,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
                     tree.addMouseListener(this);
                 } catch (IOException | GeneralSecurityException e) {
                     e.printStackTrace();
-                    JOptionPane.showMessageDialog(null, "Fehler beim Laden der Cloud-Ãœbersicht: " + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Fehler beim Laden der Cloud-Übersicht: " + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
                 } finally {
                     progressBar.setVisible(false);
                     progressLabel.setText("Loaded");
@@ -550,7 +568,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             }).start();
         }
     }
-
 
 
     public void addFilesToNode(DefaultMutableTreeNode folderNode, String folderId, Drive service) throws IOException {
@@ -636,7 +653,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
     }
 
 
-
     public void drop(DropTargetDropEvent e) {
         String allowedExtensions = ".pdf";
         e.acceptDrop(DnDConstants.ACTION_COPY);
@@ -644,22 +660,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             Transferable t = e.getTransferable();
             List<java.io.File> files = (List<java.io.File>) t.getTransferData(DataFlavor.javaFileListFlavor);
             for (java.io.File file : files) {
-
-                long totalBytes = file.length();
-                long bytesUploaded = 0;
-                String progressMessage = "Hochladen... ";
-                JProgressBar progressBar = new JProgressBar(0, 100);
-                progressBar.setString(progressMessage);
-                progressBar.setStringPainted(true);
-                JPanel progressPanel = new JPanel(new BorderLayout());
-                progressPanel.add(progressBar, BorderLayout.NORTH);
-                JDialog progressDialog = new JDialog(gui, "Hochladen", true);
-                progressDialog.getContentPane().add(progressPanel);
-                progressDialog.pack();
-                progressDialog.setLocationRelativeTo(gui);
-                progressDialog.setVisible(true);
-
-
                 String fileName = file.getName();
                 String fileSize = String.valueOf(file.length() / 1024);
                 Drive drive = gdrive.getDriveService();
@@ -669,10 +669,10 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
                     SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
                     String formattedDate = dateFormat.format(date);
                     JDialog confirmDialog = new JDialog(gui, "Datei hochladen?", true);
-                    String message = "<html>MÃ¶chten Sie die Datei hochladen?<br><br>"
+                    String message = "<html>Möchten Sie die Datei hochladen?<br><br>"
                             + "Weitere Informationen zur Datei:<br><br>"
                             + "Dateiname: " + fileName + "<br>"
-                            + "DateigrÃ¶ÃŸe: " + fileSize + " MB<br>"
+                            + "Dateigröße: " + fileSize + " MB<br>"
                             + "Zuletzt bearbeitet am: " + formattedDate + "<br>"
                             + "Dateipfad: " + file.getAbsolutePath() + "<br>"
                             + "<br><br>"
@@ -711,9 +711,9 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
                                 if (foundExam) {
                                     if (foundExamTitle.equals("WISO") || foundExamTitle.equals("Wirtschaftskunde")) {
                                         foundExamTitle = "WISO";
-                                    } else if (foundExamTitle.equals("AP1") || foundExamTitle.equals("AP 1") || foundExamTitle.equals("AbschlussprÃ¼fung Teil 1") || foundExamTitle.equals("AbschlussprÃ¼fung Teil1")) {
+                                    } else if (foundExamTitle.equals("AP1") || foundExamTitle.equals("AP 1") || foundExamTitle.equals("Abschlussprüfung Teil 1") || foundExamTitle.equals("Abschlussprüfung Teil1")) {
                                         foundExamTitle = "AP1";
-                                    } else if (foundExamTitle.equals("AP2") || foundExamTitle.equals("AP 2") || foundExamTitle.equals("AbschlusspÃ¼fung Teil 2") || foundExamTitle.equals("AbschlussprÃ¼fung Teil2")) {
+                                    } else if (foundExamTitle.equals("AP2") || foundExamTitle.equals("AP 2") || foundExamTitle.equals("Abschlusspüfung Teil 2") || foundExamTitle.equals("Abschlussprüfung Teil2")) {
                                         foundExamTitle = "AP2";
                                     }
                                 } else {
@@ -849,6 +849,11 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
 
     @Override
     public void mouseExited(MouseEvent mouseEvent) {
+    }
+
+    public static void main(String[] args) throws SQLException, IOException, ClassNotFoundException {
+        guiView gui = new guiView(null);
+        gui.setVisible(true);
     }
 
 }

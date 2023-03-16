@@ -1,6 +1,16 @@
+import org.kordamp.ikonli.materialdesign.MaterialDesign;
+import org.kordamp.ikonli.swing.FontIcon;
+
 import javax.swing.*;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 import java.awt.*;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
 
 public class registerView extends JFrame {
@@ -23,7 +33,7 @@ public class registerView extends JFrame {
         tokenLabel = new JLabel("Registrierungstoken:");
         usernameField = new JTextField();
         passwordField = new JPasswordField();
-        tokenField = new JTextField();
+        tokenField = new JTextField(8);
         registerButton = new JButton("Registrieren");
 
         JPanel panel = new JPanel(new GridLayout(4, 2, 5, 5));
@@ -36,6 +46,29 @@ public class registerView extends JFrame {
         panel.add(new JLabel());
         panel.add(registerButton);
 
+        ((AbstractDocument) tokenField.getDocument()).setDocumentFilter(new DocumentFilter() {
+            @Override
+            public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+                if (string == null) return;
+                if ((fb.getDocument().getLength() + string.length()) <= 8 && string.matches("\\d*")) {
+                    super.insertString(fb, offset, string, attr);
+                } else {
+                    Toolkit.getDefaultToolkit().beep();
+                }
+            }
+
+            @Override
+            public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+                if (text == null) return;
+                if ((fb.getDocument().getLength() + text.length() - length) <= 8 && text.matches("\\d*")) {
+                    super.replace(fb, offset, length, text, attrs);
+                } else {
+                    Toolkit.getDefaultToolkit().beep();
+                }
+            }
+        });
+
+
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(400, 200);
         setLocationRelativeTo(null);
@@ -43,18 +76,19 @@ public class registerView extends JFrame {
         setResizable(false);
 
         registerButton.addActionListener(e -> {
-            System.out.println("Register Button clicked");
             String userName = usernameField.getText();
             String passWord = String.valueOf(passwordField.getPassword());
-            String token = tokenField.getText();
+            byte[] salt = hashPw.generateSalt();
+            int token = Integer.parseInt(tokenField.getText());
             if (functions.checkData(passWord, userName)) {
-                checkTokenAndRights tokenResult = checkTokenAndRights.checkToken(token);
-                boolean validToken = tokenResult.valid;
-                String rights = tokenResult.rights;
-                boolean dlfile = tokenResult.dlfile;
-                if (validToken) {
-                    try {
-                        int insertValid = database.insertUser(userName, passWord, rights, dlfile);
+                try {
+                    byte[] hashedPassword = hashPw.hashPassword(passWord, salt);
+                    checkTokenAndRights tokenResult = checkTokenAndRights.checkToken(token);
+                    boolean validToken = tokenResult.valid;
+                    String rights = tokenResult.rights;
+                    boolean dlfile = tokenResult.dlfile;
+                    if (validToken) {
+                        int insertValid = database.insertUser(userName, hashedPassword, rights, dlfile, salt);
                         if (insertValid == 1) {
                             errorHandling.confirmregister();
                             database.deleteToken(token);
@@ -62,15 +96,12 @@ public class registerView extends JFrame {
                         } else {
                             errorHandling.errorRegister();
                         }
-                    } catch (SQLException ex) {
-                        throw new RuntimeException(ex);
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
-                    } catch (ClassNotFoundException ex) {
-                        throw new RuntimeException(ex);
+                    } else {
+                        errorHandling.errorRegister();
                     }
-                } else {
-                    errorHandling.errorRegister();
+                } catch (NoSuchAlgorithmException | InvalidKeySpecException | SQLException | ClassNotFoundException |
+                         IOException ex) {
+                    ex.printStackTrace();
                 }
             }
         });
