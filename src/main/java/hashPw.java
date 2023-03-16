@@ -17,7 +17,6 @@ public class hashPw {
         return skf.generateSecret(spec).getEncoded();
     }
 
-
     public static boolean checkPassword(String enteredPassword, byte[] storedPasswordHash, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
         PBEKeySpec spec = new PBEKeySpec(enteredPassword.toCharArray(), salt, ITERATIONS, KEY_LENGTH);
         SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");

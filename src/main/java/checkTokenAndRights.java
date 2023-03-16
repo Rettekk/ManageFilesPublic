@@ -6,8 +6,7 @@ import java.sql.SQLException;
 
 public class checkTokenAndRights {
 
-    boolean valid;
-    boolean dlfile;
+    boolean valid, dlfile;
     String rights;
 
 
@@ -16,7 +15,6 @@ public class checkTokenAndRights {
         this.dlfile = dlfile;
         this.rights = rights;
     }
-
 
     static checkTokenAndRights checkToken(int token) {
         try {

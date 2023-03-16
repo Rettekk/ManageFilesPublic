@@ -14,7 +14,7 @@ public class folderTree extends DefaultTreeCellRenderer {
             Object userObject = ((DefaultMutableTreeNode) value).getUserObject();
             if (userObject instanceof File) {
                 l.setText(((File) userObject).getName());
-            } else if (userObject instanceof String) { // Prüfen, ob es sich um einen Ordnernamen handelt
+            } else if (userObject instanceof String) {
                 l.setText((String) userObject);
             }
         }

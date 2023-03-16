@@ -57,12 +57,10 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
 
 
     public guiView(String loginName) throws SQLException, IOException, ClassNotFoundException {
-        System.setProperty("file.encoding", "UTF-8");
         this.loginName = loginName;
         permissions = database.getPermission(loginName);
         gui = new JFrame();
-        gui.setTitle("ManageMyFiles - IHK - Prüfungsunterlegen sortieren");
-        gui.setName("ManageMyFiles");
+        gui.setTitle("ManageMyFiles - IHK - PrÃ¼fungsunterlegen sortieren");
         gui.setBounds(100, 100, 800, 600);
         gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         gui.setLocationRelativeTo(null);
@@ -114,6 +112,17 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         addFileDetails = new JPanel(new BorderLayout());
         tabpane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
         gui.add(tabpane);
+
+        tabpane.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int index = tabpane.getSelectedIndex();
+                    if (index != -1) {
+                        tabpane.removeTabAt(index);
+                    }
+                }
+            }
+        });
 
         logOff.addActionListener(e -> {
             functions.logOut(gui);
@@ -196,7 +205,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             dropPanel.setPreferredSize(new Dimension(500, 300));
             dropPanel.add(dropLabel, BorderLayout.NORTH);
             gui.add(dropPanel);
-            tabpane.addTab("Datei hinzufügen", dropPanel);
+            tabpane.addTab("Datei hinzufÃ¼gen", dropPanel);
             tabpane.setSelectedIndex(tabpane.getTabCount() - 1);
         });
 
@@ -220,11 +229,11 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
     public void showContextMenu(int x, int y) {
         menu = new JPopupMenu();
         JMenuItem downloadFile = new JMenuItem("Datei herunterladen");
-        deleteItem = new JMenuItem("Datei löschen");
+        deleteItem = new JMenuItem("Datei lÃ¶schen");
         renameFileItem = new JMenuItem("Datei umbenennen");
-        createFolderItem = new JMenuItem("Ordner hinzufügen");
+        createFolderItem = new JMenuItem("Ordner hinzufÃ¼gen");
         JMenuItem renameFolderItem = new JMenuItem("Ordner umbenennen");
-        JMenuItem deleteFolderItem = new JMenuItem("Ordner löschen");
+        JMenuItem deleteFolderItem = new JMenuItem("Ordner lÃ¶schen");
 
         downloadFile.setEnabled(permissions[2]);
         deleteItem.setEnabled(permissions[0]);
@@ -290,7 +299,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
                 .execute();
         List<File> files = result.getFiles();
         if (files.size() > 0) {
-            int choice = JOptionPane.showConfirmDialog(null, "Der Ordner enthält " + files.size() + " Unterordner oder Dateien. Möchten Sie den Ordner und alle Unterordner und Dateien löschen?", "Bestätigung", JOptionPane.YES_NO_OPTION);
+            int choice = JOptionPane.showConfirmDialog(null, "Der Ordner enthÃ¤lt " + files.size() + " Unterordner oder Dateien. MÃ¶chten Sie den Ordner und alle Unterordner und Dateien lÃ¶schen?", "BestÃ¤tigung", JOptionPane.YES_NO_OPTION);
             if (choice != JOptionPane.YES_OPTION) {
                 return;
             }
@@ -317,7 +326,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             }
         }
 
-        int choice = JOptionPane.showConfirmDialog(null, "Wollen Sie den Ordner wirklich löschen?", "Bestätigung", JOptionPane.YES_NO_OPTION);
+        int choice = JOptionPane.showConfirmDialog(null, "Wollen Sie den Ordner wirklich lÃ¶schen?", "BestÃ¤tigung", JOptionPane.YES_NO_OPTION);
         if (choice != JOptionPane.YES_OPTION) {
             service.files().delete(folderId).execute();
         }
@@ -358,7 +367,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         try {
             Drive service = gdrive.getDriveService();
 
-            String newFolderName = JOptionPane.showInputDialog("Bitte einen Name für den Ordner eingeben:");
+            String newFolderName = JOptionPane.showInputDialog("Bitte einen Name fÃ¼r den Ordner eingeben:");
             File fileMetadata = new File();
             fileMetadata.setName(newFolderName);
             fileMetadata.setMimeType("application/vnd.google-apps.folder");
@@ -399,7 +408,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         if (selectedNode == null) {
             return;
         }
-        int result = JOptionPane.showConfirmDialog(null, "Möchten Sie diese Datei wirklich löschen?", "Warnung", JOptionPane.YES_NO_OPTION);
+        int result = JOptionPane.showConfirmDialog(null, "MÃ¶chten Sie diese Datei wirklich lÃ¶schen?", "Warnung", JOptionPane.YES_NO_OPTION);
         if (result != JOptionPane.YES_OPTION) {
             return;
         }
@@ -444,7 +453,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
                 if (userObject instanceof File) {
                     File fileToRename = (File) userObject;
                     String currentName = fileToRename.getName();
-                    String newName = JOptionPane.showInputDialog("Geben Sie den neuen Namen für die Datei ein:", currentName);
+                    String newName = JOptionPane.showInputDialog("Geben Sie den neuen Namen fÃ¼r die Datei ein:", currentName);
                     if (newName != null && !newName.equals(currentName)) {
                         File updatedFile = new File();
                         updatedFile.setName(newName);
@@ -501,7 +510,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
                         if (evt.getClickCount() == 2) {
                             int index = list.locationToIndex(evt.getPoint());
                             File file = model.getElementAt(index);
-                            if (JOptionPane.showConfirmDialog(null, "Möchten Sie diese Datei aus dem Papierkorb wiederherstellen?", "Datei wiederherstellen", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                            if (JOptionPane.showConfirmDialog(null, "MÃ¶chten Sie diese Datei aus dem Papierkorb wiederherstellen?", "Datei wiederherstellen", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                                 try {
                                     service.files().update(file.getId(), new File().setTrashed(false)).execute();
                                     model.removeElementAt(index);
@@ -519,7 +528,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             }
         }
     }
-
 
     public void showCloudOverview() {
         int cloudOverviewTabIndex = tabpane.indexOfTab("Cloud Overview");
@@ -560,7 +568,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
                     tree.addMouseListener(this);
                 } catch (IOException | GeneralSecurityException e) {
                     e.printStackTrace();
-                    JOptionPane.showMessageDialog(null, "Fehler beim Laden der Cloud-Übersicht: " + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Fehler beim Laden der Cloud-Ãœbersicht: " + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
                 } finally {
                     progressBar.setVisible(false);
                     progressLabel.setText("Loaded");
@@ -669,10 +677,10 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
                     SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
                     String formattedDate = dateFormat.format(date);
                     JDialog confirmDialog = new JDialog(gui, "Datei hochladen?", true);
-                    String message = "<html>Möchten Sie die Datei hochladen?<br><br>"
+                    String message = "<html>MÃ¶chten Sie die Datei hochladen?<br><br>"
                             + "Weitere Informationen zur Datei:<br><br>"
                             + "Dateiname: " + fileName + "<br>"
-                            + "Dateigröße: " + fileSize + " MB<br>"
+                            + "DateigrÃ¶ÃŸe: " + fileSize + " MB<br>"
                             + "Zuletzt bearbeitet am: " + formattedDate + "<br>"
                             + "Dateipfad: " + file.getAbsolutePath() + "<br>"
                             + "<br><br>"
@@ -711,9 +719,9 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
                                 if (foundExam) {
                                     if (foundExamTitle.equals("WISO") || foundExamTitle.equals("Wirtschaftskunde")) {
                                         foundExamTitle = "WISO";
-                                    } else if (foundExamTitle.equals("AP1") || foundExamTitle.equals("AP 1") || foundExamTitle.equals("Abschlussprüfung Teil 1") || foundExamTitle.equals("Abschlussprüfung Teil1")) {
+                                    } else if (foundExamTitle.equals("AP1") || foundExamTitle.equals("AP 1") || foundExamTitle.equals("AbschlussprÃ¼fung Teil 1") || foundExamTitle.equals("AbschlussprÃ¼fung Teil1")) {
                                         foundExamTitle = "AP1";
-                                    } else if (foundExamTitle.equals("AP2") || foundExamTitle.equals("AP 2") || foundExamTitle.equals("Abschlusspüfung Teil 2") || foundExamTitle.equals("Abschlussprüfung Teil2")) {
+                                    } else if (foundExamTitle.equals("AP2") || foundExamTitle.equals("AP 2") || foundExamTitle.equals("AbschlusspÃ¼fung Teil 2") || foundExamTitle.equals("AbschlussprÃ¼fung Teil2")) {
                                         foundExamTitle = "AP2";
                                     }
                                 } else {

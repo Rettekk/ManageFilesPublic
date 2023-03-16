@@ -22,30 +22,25 @@ public class login extends JFrame {
     private JTextField userTextField;
     private JPasswordField passwordField;
     private JButton loginButton;
-
-    private JMenuItem addFile, delFile, showCloud, authorize, cred, howTo, disc, exit, logOff;
-    private JMenu startMenu, helpMenu;
     private JLabel registerLabel;
 
     public login() {
         setTitle("ManageMyFiles - Login");
-        setName("ManageMyFiles");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(300, 150);
         setResizable(false);
         setLocationRelativeTo(null);
-
+        setVisible(false);
         userLabel = new JLabel("Benutzername:");
         passwordLabel = new JLabel("Passwort:");
         userTextField = new JTextField();
         passwordField = new JPasswordField();
         loginButton = new JButton("Anmelden");
         statusLabel = new JLabel("");
-        FontIcon icon = FontIcon.of(MaterialDesign.MDI_INFORMATION, 25, Color.DARK_GRAY);
-        JLabel iconLabel = new JLabel(icon);
+        FontIcon iconReg = FontIcon.of(MaterialDesign.MDI_INFORMATION, 25, Color.DARK_GRAY);
+        JLabel iconLabel = new JLabel(iconReg);
         registerLabel = new JLabel("Kein Konto?");
         registerLabel.setForeground(Color.BLUE);
-
 
         JPanel panel = new JPanel(new GridLayout(4,4));
         panel.add(userLabel);
@@ -59,35 +54,8 @@ public class login extends JFrame {
 
         getContentPane().add(panel, BorderLayout.CENTER);
         getContentPane().add(statusLabel, BorderLayout.SOUTH);
-
-        JMenuBar menuBar = new JMenuBar();
-        startMenu = new JMenu("Start");
-        addFile = new JMenuItem("Datei hochladen");
-        delFile = new JMenuItem("Datei loeschen");
-        showCloud = new JMenuItem("Cloud anzeigen");
-        authorize = new JMenuItem("Mit der Cloud verbinden");
-        disc = new JMenuItem("Verbindung trennen");
-        logOff = new JMenuItem("Abmelden");
-        exit = new JMenuItem("Exit");
-        helpMenu = new JMenu("Hilfe");
-        cred = new JMenuItem("Credits");
-        howTo = new JMenuItem("Bedienung");
-        JMenuItem showTrash = new JMenuItem("Papierkorb anzeigen");
-        startMenu.add(addFile).setEnabled(false);
-        startMenu.add(delFile).setEnabled(false);
-        startMenu.add(showCloud).setEnabled(false);
-        startMenu.add(disc).setEnabled(false);
-        startMenu.add(authorize).setEnabled(false);
-        startMenu.add(logOff).setEnabled(false);
-        startMenu.add(disc);
-        startMenu.add(exit);
-        helpMenu.add(cred);
-        helpMenu.add(howTo);
-        helpMenu.add(showTrash).setEnabled(false);
-        menuBar.add(startMenu);
-        menuBar.add(helpMenu);
-        setJMenuBar(menuBar);
-        setVisible(true);
+        menuBar menu = new menuBar();
+        setJMenuBar(menu.menuBar());
 
         JToolTip toolTip = new JToolTip();
         toolTip.setTipText("<html><body style='width: 200px;'>" +
@@ -109,8 +77,6 @@ public class login extends JFrame {
             }
         });
 
-
-        exit.addActionListener(e -> System.exit(0));
 
         loginButton.addActionListener(e -> {
             String userName = userTextField.getText();

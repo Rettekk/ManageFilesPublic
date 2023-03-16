@@ -15,9 +15,7 @@ public class database {
     static String SQL_InserUser = "INSERT INTO public.user (username, password, rights, dlfile, salt) VALUES (?, ?, ?, ?, ?)";
     static String SQL_DeleteToken = "DELETE FROM applicationkey WHERE keyid=?";
     static Connection connection;
-    static String db_url;
-    static String username;
-    static String passwort;
+    static String db_url, username, password;
     static String postgresDriver = "org.postgresql.Driver";
     static String cfgPath = "src/main/resources/config.properties";
 
@@ -27,11 +25,11 @@ public class database {
         prop.load(input);
         db_url = prop.getProperty("db_url");
         username = prop.getProperty("db_username");
-        passwort = prop.getProperty("db_password");
+        password = prop.getProperty("db_password");
 
         Class.forName(postgresDriver);
         System.out.println("Opening database connection...");
-        connection = DriverManager.getConnection(db_url, username, passwort);
+        connection = DriverManager.getConnection(db_url, username, password);
         System.out.println("Connection valid: " + connection.isValid(0));
     }
 
@@ -93,7 +91,6 @@ public class database {
         return rowAffected;
     }
 
-
     static void deleteToken(int token) {
         try {
             database.openDataBaseConnection();
@@ -127,7 +124,4 @@ public class database {
         }
         return data;
     }
-
-
-
 }

@@ -21,6 +21,7 @@ public class howToView {
                 "Um eine Datei oder einen Ordner zu suchen,<br>" +
                 "geben Sie den Namen der Datei oder des Ordners in das Suchfeld ein und drücken Sie die den Suchen Button.<br>" +
                 "<br>" +
+                "Doppelklick auf einen Tab schließt es." +
                 "<br>" +
                 "Das Programm funktioniert derzeit nur auf Windows Betriebssystemen ohne Probleme." +
                 "<br>" +
