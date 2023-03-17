@@ -1,7 +1,6 @@
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
@@ -28,14 +27,11 @@ public class database {
         password = prop.getProperty("db_password");
 
         Class.forName(postgresDriver);
-        System.out.println("Opening database connection...");
         connection = DriverManager.getConnection(db_url, username, password);
-        System.out.println("Connection valid: " + connection.isValid(0));
     }
 
     static void closeDataBaseConnection() throws SQLException {
         connection.close();
-        System.out.println("Connection valid: " + connection.isValid(0));
     }
 
     public static boolean login(String username, String password) throws SQLException, IOException, ClassNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException {

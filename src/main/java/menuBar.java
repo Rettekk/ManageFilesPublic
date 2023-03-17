@@ -1,7 +1,5 @@
 import javax.swing.*;
 
-
-
 public class menuBar  extends JFrame {
     private JMenuBar menuBar = new JMenuBar();
     private JMenu startMenu, helpMenu;

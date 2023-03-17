@@ -21,7 +21,6 @@ import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import org.apache.pdfbox.pdmodel.PDDocument;
 
-/* class to demonstarte use of Drive files list API */
 public class gdrive {
 
     private static final String APPLICATION_NAME = "Google Drive File Manager";

@@ -204,7 +204,7 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
          //   FontIcon drophere = FontIcon.of(MaterialDesign.MDI_FOLDER_DOWNLOAD, 100, Color.decode("#A9A9A9"));
            // JLabel iconLabel = new JLabel(drophere);
            // iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-            LottieAnimationView animationView = new LottieAnimationView();
+
 
             dropLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
