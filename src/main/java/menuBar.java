@@ -30,8 +30,8 @@ public class menuBar  extends JFrame {
         startMenu.add(logOff).setEnabled(false);
         startMenu.add(disc);
         startMenu.add(exit);
-        helpMenu.add(cred);
-        helpMenu.add(howTo);
+        helpMenu.add(cred).setEnabled(false);
+        helpMenu.add(howTo).setEnabled(false);
         helpMenu.add(showTrash).setEnabled(false);
         menuBar.add(startMenu);
         menuBar.add(helpMenu);

@@ -87,4 +87,12 @@ public class errorHandling {
     public static void confirmregister() {
         JOptionPane.showMessageDialog(null, "Registrierung erfolgreich!");
     }
+
+    public static void emptyFields() {
+        JOptionPane.showMessageDialog(null, "Bitte füllen Sie alle Felder aus.");
+    }
+
+    public static void errorEmptyFields() {
+        JOptionPane.showMessageDialog(null, "Bitte füllen Sie alle Felder aus.");
+    }
 }

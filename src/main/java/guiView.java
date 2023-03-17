@@ -1,4 +1,3 @@
-import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.services.drive.Drive;
@@ -6,9 +5,6 @@ import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.kordamp.ikonli.materialdesign.MaterialDesign;
-import org.kordamp.ikonli.swing.FontIcon;
-
 import javax.swing.*;
 import javax.swing.tree.*;
 import java.awt.*;
@@ -27,6 +23,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
+
 
 public class guiView extends JTable implements DropTargetListener, MouseListener {
 
@@ -108,17 +105,21 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         dropPanel = new JPanel(new BorderLayout());
         dropLabel = new JLabel("Datei bitte hier ablegen");
         dropLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        dropLabel.setVerticalAlignment(SwingConstants.CENTER);
         dropLabel.setFont(new Font("Arial", Font.BOLD, 20));
         addFileDetails = new JPanel(new BorderLayout());
         tabpane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
         gui.add(tabpane);
 
         tabpane.addMouseListener(new MouseAdapter() {
+            @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                    int index = tabpane.getSelectedIndex();
-                    if (index != -1) {
-                        tabpane.removeTabAt(index);
+                    int tabIndex = tabpane.getSelectedIndex();
+                    if (tabIndex >= 0) {
+                        if (tabIndex == tabpane.getTabCount() - 1) {
+                            tabpane.removeTabAt(tabIndex);
+                        }
                     }
                 }
             }
@@ -151,7 +152,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             }
         });
 
-
         cred.addActionListener(e -> {
             openCreditsTab();
         });
@@ -170,7 +170,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             authorize.setEnabled(true);
             functions.closeAllTabbedPanes(gui.getContentPane());
         });
-
 
         authorize.addActionListener(e -> {
             try {
@@ -200,12 +199,29 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
             showCloudOverview();
             searchPanel.setVisible(true);
         });
+
         addFile.addActionListener(e -> {
+         //   FontIcon drophere = FontIcon.of(MaterialDesign.MDI_FOLDER_DOWNLOAD, 100, Color.decode("#A9A9A9"));
+           // JLabel iconLabel = new JLabel(drophere);
+           // iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            LottieAnimationView animationView = new LottieAnimationView();
+
+            dropLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            Box verticalBox = Box.createVerticalBox();
+            verticalBox.add(Box.createVerticalGlue());
+           // verticalBox.add(iconLabel);
+            verticalBox.add(Box.createVerticalStrut(20));
+            verticalBox.add(dropLabel);
+            verticalBox.add(Box.createVerticalGlue());
+
             dropPanel.setDropTarget(new DropTarget(dropPanel, DnDConstants.ACTION_COPY, this));
             dropPanel.setPreferredSize(new Dimension(500, 300));
-            dropPanel.add(dropLabel, BorderLayout.NORTH);
+            dropPanel.setLayout(new BorderLayout());
+            dropPanel.add(verticalBox, BorderLayout.CENTER);
+
             gui.add(dropPanel);
-            tabpane.addTab("Datei hinzufügen", dropPanel);
+            tabpane.addTab("PDF-Datei hinzufügen", dropPanel);
             tabpane.setSelectedIndex(tabpane.getTabCount() - 1);
         });
 
@@ -536,10 +552,25 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         } else {
             JProgressBar progressBar = new JProgressBar();
             progressBar.setIndeterminate(true);
-            JLabel progressLabel = new JLabel("");
+            progressBar.setPreferredSize(new Dimension(300, 15));
+            JLabel progressLabel = new JLabel("Daten werden geladen. Dies kann bis zu einer Minute dauern");
+            progressLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            progressLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 400, 0));
+
+            JPanel progressBarPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+            progressBarPanel.add(progressBar);
+
+            Box verticalBox = Box.createVerticalBox();
+            verticalBox.add(Box.createVerticalStrut(30));
+            verticalBox.add(progressBarPanel);
+            verticalBox.add(Box.createVerticalStrut(20));
+            verticalBox.add(progressLabel);
+            verticalBox.add(Box.createVerticalGlue());
+
             JPanel panel = new JPanel();
-            panel.add(progressBar);
-            panel.add(progressLabel);
+            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+            panel.add(verticalBox);
+
             tabpane.addTab("Cloud Overview", panel);
             tabpane.setSelectedIndex(tabpane.getTabCount() - 1);
 

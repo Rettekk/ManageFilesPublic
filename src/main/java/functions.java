@@ -25,6 +25,14 @@ public class functions {
         login.setVisible(true);
         gui.setVisible(false);
     }
+    public static boolean checkLoginFields(JTextField userTextField, JPasswordField passwordField) {
+        if (userTextField.getText().isEmpty() || passwordField.getPassword().length == 0) {
+            errorHandling.emptyFields();
+            return false;
+        }
+        return true;
+    }
+
     static boolean checkData(String password, String username) {
         if (password.length() < 8) {
             JOptionPane.showMessageDialog(null, "Das Passwort muss mindestens 8 Zeichen haben.");
@@ -36,4 +44,5 @@ public class functions {
         }
         return true;
     }
+
 }
