@@ -34,7 +34,7 @@ public class gdrive {
     private static final String CREDENTIALS_FILE_PATH = "/creds.json";
     static Drive drive;
     private static Credential credentials;
-    static String apiKey = "AIzaSyCKhoaf7Fmkt93fjFcTcc8dI8Ht2J4W2ig";
+    static String apiKey = "";
 
     public static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
             throws IOException {
