@@ -128,6 +128,8 @@ public class login extends JFrame {
                 if (database.login(userName, passWord)) {
                     errorHandling.forward();
                     guiView gui = new guiView(userName);
+                    IconManager iconManager = new IconManager();
+                    iconManager.setIcon(guiView.gui);
                     gui.setVisible(true);
                     dispose();
                 } else {

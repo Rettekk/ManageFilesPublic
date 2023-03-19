@@ -27,7 +27,7 @@ import java.util.List;
 
 public class guiView extends JTable implements DropTargetListener, MouseListener {
 
-    public JFrame gui;
+    public static JFrame gui;
     JLabel dropLabel;
     JPopupMenu menu;
     JPanel dropPanel, addFileTab, addFileDetails;
@@ -665,7 +665,6 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
         tabpane.setSelectedIndex(tabIndex);
     }
 
-    //dateiupload tabelle
     public void drop(DropTargetDropEvent e) {
         String allowedExtensions = ".pdf";
         e.acceptDrop(DnDConstants.ACTION_COPY);
@@ -785,9 +784,10 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
                         throw new RuntimeException(ex);
                     }
                 }
+                errorHandling.filesSuccessfullyUploaded();
             }
             if (option == JOptionPane.NO_OPTION) {
-                JOptionPane.showMessageDialog(null, "Die Dateien wurden nicht hochgeladen.");
+                errorHandling.filesNotUploaded();
             }
         } catch (IOException | UnsupportedFlavorException ex) {
             throw new RuntimeException(ex);

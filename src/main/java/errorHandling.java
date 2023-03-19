@@ -79,4 +79,12 @@ public class errorHandling {
     public static void errorEmptyFields() {
         JOptionPane.showMessageDialog(null, "Bitte füllen Sie alle Felder aus.");
     }
+
+    public static void filesSuccessfullyUploaded() {
+        JOptionPane.showMessageDialog(null, "Die Dateien wurden erfolgreich hochgeladen.");
+    }
+
+    public static void filesNotUploaded() {
+        JOptionPane.showMessageDialog(null, "Die Dateien wurden nicht hochgeladen.");
+    }
 }
