@@ -853,9 +853,8 @@ public class guiView extends JTable implements DropTargetListener, MouseListener
     public void mouseExited(MouseEvent mouseEvent) {
     }
 
-    public static void main(String[] args) throws SQLException, IOException, ClassNotFoundException {
+   /* public static void main(String[] args) throws SQLException, IOException, ClassNotFoundException {
         guiView gui = new guiView(null);
         gui.setVisible(true);
-    }
-
+    }*/
 }
