@@ -95,12 +95,8 @@ public class database {
             stmt.executeUpdate();
             stmt.close();
             database.closeDataBaseConnection();
-        } catch (SQLException ex) {
+        } catch (SQLException | ClassNotFoundException | IOException ex) {
             throw new RuntimeException(ex);
-        } catch (ClassNotFoundException ex) {
-            throw new RuntimeException(ex);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 

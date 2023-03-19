@@ -97,18 +97,6 @@ public class login extends JFrame {
         c.anchor = GridBagConstraints.LINE_START;
         panel.add(iconLabel, c);
 
-
-      /*  JPanel panel = new JPanel(new GridLayout(4,4));
-        panel.add(userLabel);
-        panel.add(userTextField);
-        panel.add(passwordLabel);
-        panel.add(passwordField);
-        panel.add(registerLabel);
-        panel.add(new JLabel());
-        panel.add(iconLabel);
-        panel.add(loginButton);*/
-
-
         getContentPane().add(panel, BorderLayout.CENTER);
         getContentPane().add(statusLabel, BorderLayout.SOUTH);
         menuBar menu = new menuBar();
@@ -145,15 +133,8 @@ public class login extends JFrame {
                 } else {
                     errorHandling.wrongInput();
                 }
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            } catch (ClassNotFoundException ex) {
-                throw new RuntimeException(ex);
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            } catch (NoSuchAlgorithmException ex) {
-                throw new RuntimeException(ex);
-            } catch (InvalidKeySpecException ex) {
+            } catch (SQLException | ClassNotFoundException | IOException | NoSuchAlgorithmException |
+                     InvalidKeySpecException ex) {
                 throw new RuntimeException(ex);
             }
         });

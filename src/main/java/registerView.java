@@ -16,7 +16,7 @@ import java.util.Arrays;
 
 public class registerView extends JFrame {
 
-    private final JLabel usernameLabel, passwordLabel, tokenLabel, repeatPasswordLabel, passwordMismatchLabel, iconRegLabel;
+    private final JLabel usernameLabel, passwordLabel, tokenLabel, repeatPasswordLabel, iconRegLabel;
     private final JTextField usernameField, tokenField;
     private final JPasswordField passwordField, repeatPasswordField;
     private final JButton registerButton;
@@ -33,7 +33,6 @@ public class registerView extends JFrame {
         passwordField = new JPasswordField();
         tokenField = new JTextField(8);
         registerButton = new JButton("Registrieren");
-        passwordMismatchLabel = new JLabel("Passwörter stimmen nicht überein");
         repeatPasswordField = new JPasswordField();
 
         panel = new JPanel(new GridLayout(5, 3, 2, 2));
@@ -153,11 +152,7 @@ public class registerView extends JFrame {
     private void checkPasswordMatch() {
         char[] password = passwordField.getPassword();
         char[] repeatPassword = repeatPasswordField.getPassword();
-        if (!Arrays.equals(password, repeatPassword)) {
-            iconRegLabel.setVisible(true);
-        } else {
-            iconRegLabel.setVisible(false);
-        }
+        iconRegLabel.setVisible(!Arrays.equals(password, repeatPassword));
     }
     public boolean checkFieldsInputs() {
         if (usernameField.getText().isEmpty() || passwordField.getPassword().length == 0 || tokenField.getText().isEmpty() || repeatPasswordField.getPassword().length == 0) {

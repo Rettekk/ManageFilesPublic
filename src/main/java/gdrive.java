@@ -4,6 +4,7 @@ import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -13,8 +14,11 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.security.GeneralSecurityException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import com.google.api.client.googleapis.services.CommonGoogleClientRequestInitializer;
 import com.google.api.services.drive.model.File;
@@ -146,5 +150,25 @@ public class gdrive {
         } catch (Exception ex) {
             return false;
         }
+    }
+
+    public static void uploadToDrive(String jobId, String examId, String semesterId, String fileName, java.io.File file) throws IOException {
+        String jobFolderId = gdrive.getOrCreateFolderId(gdrive.drive, jobId, "root");
+        String examFolderId = gdrive.getOrCreateFolderId(gdrive.drive, examId, jobFolderId);
+        String semesterFolderId = gdrive.getOrCreateFolderId(gdrive.drive, semesterId, examFolderId);
+
+        String timestamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());
+        String newFileName = jobId + "_" + examId + "_" + semesterId + "_" + fileName.substring(0, fileName.lastIndexOf(".")) + "_" + timestamp;
+
+        File fileMetadata = new File();
+        fileMetadata.setName(newFileName);
+        fileMetadata.setParents(Collections.singletonList(semesterFolderId));
+        File newFile = gdrive.drive.files().create(fileMetadata).execute();
+        String fileId = newFile.getId();
+
+        java.io.File fileContent = new java.io.File(file.getAbsolutePath());
+        ByteArrayContent content = new ByteArrayContent("application/octet-stream", Files.readAllBytes(fileContent.toPath()));
+        Drive.Files.Update update = gdrive.drive.files().update(fileId, null, content);
+        update.execute();
     }
 }

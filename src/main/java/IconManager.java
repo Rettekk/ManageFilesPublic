@@ -1,12 +1,13 @@
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import java.util.Objects;
 
 public class IconManager {
-    private ImageIcon icon;
+    private final ImageIcon icon;
    public String pathToIcon = "filemanage.png";
 
     public IconManager() {
-        icon = new ImageIcon(getClass().getResource(pathToIcon));
+        icon = new ImageIcon(Objects.requireNonNull(getClass().getResource(pathToIcon)));
     }
 
     public void setIcon(JFrame frame) {

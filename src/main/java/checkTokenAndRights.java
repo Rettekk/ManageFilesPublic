@@ -1,5 +1,4 @@
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -8,7 +7,6 @@ public class checkTokenAndRights {
 
     boolean valid, dlfile;
     String rights;
-
 
     public checkTokenAndRights(boolean valid, boolean dlfile, String rights) {
         this.valid = valid;
@@ -35,12 +33,8 @@ public class checkTokenAndRights {
             stmt.close();
             database.closeDataBaseConnection();
             return new checkTokenAndRights(result, dlfile, rights);
-        } catch (SQLException ex) {
+        } catch (SQLException | ClassNotFoundException | IOException ex) {
             throw new RuntimeException(ex);
-        } catch (ClassNotFoundException ex) {
-            throw new RuntimeException(ex);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 }

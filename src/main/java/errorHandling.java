@@ -27,16 +27,8 @@ public class errorHandling {
         JOptionPane.showMessageDialog(null, "Das Semester wurde in der Datei  " + file.getName() + " nicht gefunden. Die Datei wird nicht hochgeladen.");
     }
 
-    public static void fileWrongPw() {
-        JOptionPane.showMessageDialog(null, "Das Passwort ist falsch! Bitte wenden Sie sich an Ihren Administrator.");
-    }
-
     public static void errorDownloadFile(Exception e) {
         JOptionPane.showMessageDialog(null, "Fehler beim Herunterladen der Datei: " + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
-    }
-
-    public static void maxAttemptsWrongPw() {
-        JOptionPane.showMessageDialog(null, "Sie haben 3 falsche Passwörter eingegeben. Sie werden nun ausgeloggt.");
     }
 
     public static void successDownloadFile() {
@@ -70,14 +62,6 @@ public class errorHandling {
 
     public static void noPermissionRevoke() {
         JOptionPane.showMessageDialog(null, "Sie haben keine ausreichenden Rechte, um diese Datei wiederherzustellen.", "Keine Berechtigung", JOptionPane.ERROR_MESSAGE);
-    }
-
-    public static void errorLoadingCloudOverview(Exception e) {
-        JOptionPane.showMessageDialog(null, "Fehler beim Laden der Cloud-Übersicht: " + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
-    }
-
-    public static void fillAllFields() {
-        JOptionPane.showMessageDialog(null, "Bitte geben Sie alle Felder ein.");
     }
 
     public static void errorRegister() {
